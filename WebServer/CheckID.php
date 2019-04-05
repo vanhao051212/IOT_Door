@@ -1,6 +1,7 @@
 <?php
 
 	if($_SERVER['REQUEST_METHOD']==='POST'){
+		
 		$servername= "localhost";
 		$username = "root";
 		$password = "";
@@ -24,18 +25,19 @@
 				die("ERROR".$conn->connect_error);
 				exit();
 			}
+			
+
 			if($res->num_rows > 0){
-				echo "ID right";
+				$data = array('Result' =>  'Success' );
 			}
 			else{
-				echo "ID wrong";
+				$data = array('Result' =>  'Fail' );
 			}
 			
 
 			$conn->close();
-			//echo json_encode($data);	
+			echo json_encode($data);	
 		}
-		
 	}
 
 
