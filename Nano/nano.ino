@@ -34,4 +34,5 @@ void loop() {
   if(millis() - Time_Out <= 10000 ){
     Check_Button();
   }  
+  Send_ID(reading_card);
 }
