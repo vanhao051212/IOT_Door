@@ -5,7 +5,7 @@
 #include <SoftwareSerial.h>
 
 SoftwareSerial ss(D5,D1);
-
+WiFiClient client;
 
 #define Led1  6
 #define Led2  7
@@ -14,12 +14,13 @@ SoftwareSerial ss(D5,D1);
 
 const char* ssid     = "Van Hao";
 const char* password = "17520451";
-const char* host = "192.168.0.1";
-WiFiClient client;
+const char* host = "192.168.137.1";
+//WiFiClient client;
 
 String IDString="";
 /* change your link here **********************************/
-String uri = "http://192.168.137.1:3000/checkRFID";
+const char* Send_Check_ID="http://192.168.137.1:80/IOT_Door/CheckID.php";
+const char* Send_Request_url= "http://192.168.137.1:80/IOT_Door/Request.php";
 
 
 
@@ -57,7 +58,7 @@ void INIT(){
 
 void Check_ID(String ID){
   HTTPClient http;
-  http.begin(uri);
+  http.begin(Send_Check_ID);
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
   int httpCode=http.POST(String ("ID=")+ ID); 
   String payload=http.getString();
@@ -79,8 +80,24 @@ void Check_ID(String ID){
   //Serial.print(check);
   if(root[0]["Result"]==1){
     ss.print("success.");
+    Serial.println("Success");
   }
   else{
     ss.print("fail.");
+    Serial.println("Fail");
   }
+}
+
+void Send_Request(String Request){
+  String data = "Request=" + Request + "&IDPhong=" +"A3.1";
+  Serial.println(data);
+  HTTPClient http;
+  http.begin(Send_Request_url);
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  int httpCode=http.POST(data); 
+  String payload=http.getString();
+  http.end();
+  if(httpCode==200){
+    Serial.println("Request success");
+  }   
 }

@@ -13,7 +13,7 @@ void loop() {
     char character = char(ss.read());
     
     // if receive id
-    if(character != '.'){
+    if(character != '.' && character != ','){
       IDString += character;   
     }
     if(character == '.'){
@@ -21,7 +21,11 @@ void loop() {
       IDString.trim();  
       Check_ID(IDString);       
       IDString="";
-
+    }
+    if(character == ','){
+      IDString.trim();  
+      Send_Request(IDString);       
+      IDString="";
     }
   }
       
