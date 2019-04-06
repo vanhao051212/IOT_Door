@@ -7,9 +7,9 @@
 		$password = "";
 		$db = "iot_door";
 
-		if(!empty($_POST['name']))
+		if(!empty($_POST['ID']))
 		{
-			$id = $_POST['name'];
+			$id = $_POST['ID'];
 
 			$conn= new mysqli("localhost", $username, $password, $db );
 			if ($conn->connect_error) {
@@ -26,12 +26,12 @@
 				exit();
 			}
 			
-
+			$data=array();
 			if($res->num_rows > 0){
-				$data = array('Result' =>  'Success' );
+				$data[] = array('Result' =>  1);
 			}
 			else{
-				$data = array('Result' =>  'Fail' );
+				$data[] = array('Result' =>  0 );
 			}
 			
 
