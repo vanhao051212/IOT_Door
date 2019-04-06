@@ -25,14 +25,41 @@ void loop() {
             reading_card[i] = rfid.serNum[i];
           }
           Serial.println();
-          Time_Out=millis();
+          
        }
-
+      Send_ID(reading_card);      
     }
     rfid.halt();
   /*******************************************************************/
+  /* Check respone */
+  if(ss.available()>0){
+
+    char character = char(ss.read());
+    
+    // if receive id
+    if(character != '.' ){
+      Check_Result += character;   
+    }
+    if(character == '.'){
+      Check_Result.trim();  
+      if(Check_Result=="success"){
+        
+        digitalWrite(Led1,0);
+        Time_Out=millis(); 
+            
+      }
+      else{
+         digitalWrite(Led1,1);
+      }
+      Check_Result="";
+    }
+  }
   if(millis() - Time_Out <= 10000 ){
     Check_Button();
-  }  
-  Send_ID(reading_card);
+  }
+  else{
+    digitalWrite(Led1,1);
+  }
+
+
 }
