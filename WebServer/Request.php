@@ -18,7 +18,7 @@
 
 
 			//UPDATE `phong` SET `WATER` = 'ON' WHERE `phong`.`IDPhong` = 'E6.1'
-			$sql = "UPDATE phong SET $req= 'ON' where IDPhong= 'E6.1' ";
+			$sql = "UPDATE phong SET $req= 'ON' where IDPhong= '$ID_Phong' ";
 			 
 			if ($conn->query($sql) === TRUE) {
     			echo "Record updated successfully";
