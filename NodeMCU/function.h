@@ -10,7 +10,7 @@ WiFiClient client;
 #define Led1  6
 #define Led2  7
 
-
+unsigned long Time_out;  // time to reset
 
 const char* ssid     = "Van Hao";
 const char* password = "17520451";
@@ -23,6 +23,7 @@ const char* Send_Check_ID="http://192.168.137.1:80/IOT_Door/CheckID.php";
 const char* Send_Request_url= "http://192.168.137.1:80/IOT_Door/Request.php";
 
 
+void(* resetFunc) (void) = 0;// reset function
 
 void INIT(){
   Serial.begin(9600);
@@ -48,6 +49,8 @@ void INIT(){
   const int httpPort = 80;
   if (!client.connect(host, httpPort)) {
     Serial.println("connection failed");
+    delay(100);
+    resetFunc();    // if can't  connect to server , reset program
     return;
   }
   Serial.println("connected server");

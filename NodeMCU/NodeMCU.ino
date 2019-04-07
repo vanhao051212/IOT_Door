@@ -4,11 +4,17 @@
 void setup() {
   // put your setup code here, to run once:
   INIT();
-
+  Time_out = millis();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  // reset program every 5' (300000ms)
+  if (millis() - Time_out > 300000){
+    Serial.print("Reset program!!!");
+    delay(1000);
+    resetFunc();
+  }
+
   if(ss.available()>0){
     char character = char(ss.read());
     
