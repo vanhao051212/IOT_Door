@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>CONTROL</title>
+	<script type="text/javascript" src="jquery.js"></script>
+	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript" src="xuly.js"></script>
+	<link rel="stylesheet" type="text/css" href="layout.css" />
+</head>
+<body>
+	<div id="wrapper">
+		<%
+		var html="";
+		rooms.forEach(function(room) {
+			var htmlStatus="";
+			var MessIDs=JSON.parse(room.Mess);
+			MessIDs.forEach(function(MessID) {
+				messes.forEach(function(mess) {
+					if(MessID == mess.MessID) {
+						htmlStatus+='<p>'+mess.MessInFo+'</p>';
+					}
+				});
+			});
+			html+='<div id="'+room.RoomID+'" class="room">'
+				+'<h2>Phong '+room.RoomID+'</h2>'
+				+'<div id="info_'+room.RoomID+'">'+htmlStatus+'</div>'
+				+'<input type="text" class="txtMessage" id="txtSend_'+room.RoomID+'">'
+				+'<button type="button" class="btnSend" id="btnSend_'+room.RoomID+'">Send</button><br><br><br>'
+				+'<button type="button" class="btnReset" id="btnReset_'+room.RoomID+'">Reset</button>'
+				+'</div>';
+		});
+		%>
+		<%- html %>
+	</div>
+</body>
+</html>

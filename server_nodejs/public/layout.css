@@ -1,0 +1,33 @@
+body{background-color: #cee4ea}
+#wrapper{width: 100%; margin:auto; background-color: transparent}
+.room{overflow: scroll; width: 19%; height: 300px; float:left; background-color: transparent; color: black;border: solid 2px white; text-align: center}
+
+.txtMessage{width: 79%; border: solid 1px black; float: left;}
+.btnSend{width: 19%;float: right;}
+.btnReset{width: 50%; height: 10%; float: none;}
+
+div.user{
+text-align: center;
+width: 50px;
+float:center;
+padding: 5px 10px;
+box-shadow: 0 0 10px;
+border-radius: 2px;
+font-size: 13px;
+text-shadow: 0 1px 0 #fff;
+margin-top:10px;
+margin-left:45px;
+}
+
+div.typing{
+text-align: center;
+width: auto;
+float:center;
+padding: 5px 10px;
+box-shadow: 0 0 10px;
+border-radius: 2px;
+font-size: 16px;
+text-shadow: 0 1px 0 #fff;
+margin-top:10px;
+margin-left:45px;
+}
