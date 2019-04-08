@@ -1,4 +1,4 @@
-#include"function.h"
+#include "function.h"
 
 
 void setup() {
@@ -19,7 +19,7 @@ void loop() {
           Serial.println("Card found");
           Serial.println("Cardnumber:");
           for (int i = 0; i < 5; i++)
-          {     
+          {
             Serial.print(rfid.serNum[i]);
             Serial.print(" ");
             reading_card[i] = rfid.serNum[i];

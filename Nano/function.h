@@ -1,8 +1,10 @@
+#ifndef FUNCTION_H
+#define FUNCTION_H
+
 #include<SoftwareSerial.h>
 #include<LiquidCrystal_I2C.h>
 #include <SPI.h>
-#include <RFID.h>
-#include<Arduino_JSON.h>
+#include "RFID.h"
 SoftwareSerial ss(9, 8);    // RX(TX-ESP)   TX(RX_ESP)
 LiquidCrystal_I2C lcd(0x27,16,02);
 
@@ -114,3 +116,5 @@ void Check_Button(){
   }
   digitalWrite(Led2,Stt);
 }
+
+#endif
