@@ -34,8 +34,11 @@ io.on("connection", function(socket) {
 		};
     });
     //esp send message
+    // {"RoomID":"C103", "Mess":"M02"}
     socket.on("esp-send-mess", function(data) {
-    	data=JSON.parse(data);
+    	console.log("esp-send-mess");
+    	console.log(data);
+    	console.log("--------------------------");
     	if(data.RoomID && data.Mess) {
     		tryUpdateSend();
     		/*
@@ -66,7 +69,9 @@ io.on("connection", function(socket) {
     	}
     });
     socket.on("esp-send-join-room", function(data) {
-    	data=JSON.parse(data);
+    	console.log("esp-send-join-room");
+    	console.log(data);
+    	console.log("--------------------------");
     	if(data.RoomID) {
     		tryJoin();
     		async function tryJoin() {
@@ -74,6 +79,8 @@ io.on("connection", function(socket) {
 			        var checkRoomExist = await db.checkRoomExist(data.RoomID);
 			        if (checkRoomExist) {
 			        	socket.join(data.RoomID);
+			        	console.log("join-success");
+			        	io.sockets.in(data.RoomID).emit("join-success", "OK");
 			        }
 			    }
 			    catch(e){throw (e);}
