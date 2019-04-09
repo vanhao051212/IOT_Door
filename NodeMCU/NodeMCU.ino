@@ -16,7 +16,6 @@ LiquidCrystal_I2C lcd(0x27, lcdColumns, lcdRows);
 #include <Arduino.h>
 
 #include <ESP8266WiFi.h>
-#include <ESP8266WiFiMulti.h>
 
 #include <ESP8266HTTPClient.h>
 
@@ -24,14 +23,13 @@ LiquidCrystal_I2C lcd(0x27, lcdColumns, lcdRows);
 
 #define USE_SERIAL Serial
 
-ESP8266WiFiMulti WiFiMulti;
 SocketIoClient webSocket;
 
-const char* Send_Check_ID="http://192.168.0.112:3000/checkRFID";
-const char* Host_Socket = "192.168.0.112";
+const char* Send_Check_ID="http://192.168.0.105:3000/checkRFID";
+const char* Host_Socket = "192.168.0.105";
 unsigned int Port_Socket = 3000;
-const char* ssid = "Baby I'm unreal";
-const char* pwmWifi = "417417417";
+const char* ssid = "UIT_Guest";
+const char* pwdWifi = "1denmuoi1";
 
 bool Check_ID(String ID){
   HTTPClient http;
@@ -73,6 +71,18 @@ void handleMess(const char * payload, size_t length) {
   lcd.print(Mess);
 }
 
+void ackMess(const char * payload, size_t length) {
+  lcd.setCursor(0, 0);
+  lcd.print("                ");
+  lcd.setCursor(0, 0);
+  lcd.print("Send successful!");
+  delay(1500);
+  lcd.setCursor(0, 0);
+  lcd.print("                ");
+  lcd.setCursor(0, 0);
+  lcd.print("Ready to use!");
+}
+
 bool ableSendMess = false;
 
 // Helper routine to dump a byte array as hex values to Serial
@@ -97,13 +107,23 @@ void dump_byte_array(byte *buffer, byte bufferSize) {
   Serial.println(strSend);
 }
 
+bool printedReady = false;
+
 unsigned long time_join_room;
 
+unsigned long time_out; //time out reset
+
+void(* resetFunc) (void) = 0;// reset function
+
 void setup() {
-    // initialize LCD
+    //initialize LCD
     lcd.init();
-    // turn on LCD backlight                      
+    //turn on LCD backlight                
     lcd.backlight();
+    
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Initilizing...");
     
     USE_SERIAL.begin(115200);
 
@@ -116,82 +136,141 @@ void setup() {
     USE_SERIAL.println();
     USE_SERIAL.println();
 
-      for(uint8_t t = 4; t > 0; t--) {
-          USE_SERIAL.printf("[SETUP] BOOT WAIT %d...\n", t);
-          USE_SERIAL.flush();
-          delay(1000);
-      }
-
-    WiFiMulti.addAP(ssid, pwmWifi);
-
-    while(WiFiMulti.run() != WL_CONNECTED) {
-        delay(100);
+    for(uint8_t t = 4; t > 0; t--) {
+        USE_SERIAL.printf("[SETUP] BOOT WAIT %d...\n", t);
+        USE_SERIAL.flush();
+        delay(1000);
     }
+
+    WiFi.begin(ssid, pwdWifi);
+
+    while (WiFi.status() != WL_CONNECTED)
+    {
+      delay(500);
+      Serial.print(".");
+    }
+  
+    Serial.println();
+    Serial.print("Connected, IP address: ");
+    Serial.println(WiFi.localIP());
 
     webSocket.on("join-success", join_success);
     webSocket.on("server-send-mess-to-esp", handleMess);
+    webSocket.on("server-ack", ackMess);
     webSocket.begin(Host_Socket, Port_Socket, "/socket.io/?transport=websocket");
     // use HTTP Basic Authorization this is optional remove if not needed
     //webSocket.setAuthorization("username", "password");
     time_join_room = millis();
+    time_out = millis();
 }
 
-bool printedReady = false;
-
 void loop() {
-    if (!joinedRoom && (millis()-time_join_room>5000)) {
+    if (millis() - time_out > 300000){
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Auto reset");
+      delay(1000);
+      resetFunc();
+    }
+    if (!joinedRoom && (millis()-time_join_room>5000)) { //neu chua join room in server
       time_join_room = millis();
       webSocket.emit("esp-send-join-room", "{\"RoomID\":\"R201\"}");
     }
-    if (Serial.available() && ableSendMess) {
+    
+    if (ableSendMess && !printedReady && joinedRoom) {
+      printedReady = true;
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Ready to use!");
+    }
+    
+    if (Serial.available() && ableSendMess && joinedRoom) { // neu uart den + xac thuc + da join room
       char val = Serial.read();
       switch(val) {
         case '1':
+          lcd.setCursor(0, 0);
+          lcd.print("                ");
+          lcd.setCursor(0, 0);
+          lcd.print("Sending...");
           webSocket.emit("esp-send-mess", "{\"RoomID\":\"R201\",\"Mess\":\"M01\"}");
           break;
         case '2':
+          lcd.setCursor(0, 0);
+          lcd.print("                ");
+          lcd.setCursor(0, 0);
+          lcd.print("Sending...");
           webSocket.emit("esp-send-mess", "{\"RoomID\":\"R201\",\"Mess\":\"M02\"}");
           break;
         case '3':
+          lcd.setCursor(0, 0);
+          lcd.print("                ");
+          lcd.setCursor(0, 0);
+          lcd.print("Sending...");
           webSocket.emit("esp-send-mess", "{\"RoomID\":\"R201\",\"Mess\":\"M03\"}");
           break;
         case '4':
+          lcd.setCursor(0, 0);
+          lcd.print("                ");
+          lcd.setCursor(0, 0);
+          lcd.print("Sending...");
           webSocket.emit("esp-send-mess", "{\"RoomID\":\"R201\",\"Mess\":\"M04\"}");
           break;
         case '5':
+          lcd.setCursor(0, 0);
+          lcd.print("                ");
+          lcd.setCursor(0, 0);
+          lcd.print("Sending...");
           webSocket.emit("esp-send-mess", "{\"RoomID\":\"R201\",\"Mess\":\"M05\"}");
           break;
         case '6':
+          lcd.setCursor(0, 0);
+          lcd.print("                ");
+          lcd.setCursor(0, 0);
+          lcd.print("Sending...");
           webSocket.emit("esp-send-mess", "{\"RoomID\":\"R201\",\"Mess\":\"M06\"}");
           break;
         case '7':
+          lcd.setCursor(0, 0);
+          lcd.print("                ");
+          lcd.setCursor(0, 0);
+          lcd.print("Sending...");
           webSocket.emit("esp-send-mess", "{\"RoomID\":\"R201\",\"Mess\":\"M07\"}");
           break;
         case '8':
+          lcd.setCursor(0, 0);
+          lcd.print("                ");
+          lcd.setCursor(0, 0);
+          lcd.print("Sending...");
           webSocket.emit("esp-send-mess", "{\"RoomID\":\"R201\",\"Mess\":\"M08\"}");
           break;
       }
-    } else if (Serial.available()) {
+    } else if (Serial.available() && !ableSendMess) {
       while (Serial.available()) Serial.read();
       lcd.clear();
-
       lcd.setCursor(0, 0);
       // print message
       lcd.print("Load card!");
     }
+    
     webSocket.loop();
-    // Look for new cards
-  if ( ! mfrc522.PICC_IsNewCardPresent()) {
-    delay(50);
-    return;
-  }
-  // Select one of the cards
-  if ( ! mfrc522.PICC_ReadCardSerial()) {
-    delay(50);
-    return;
-  }
-  // Show some details of the PICC (that is: the tag/card)
-  Serial.print(F("Detected card:"));
-  dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
-  Serial.println();
+
+    if (!ableSendMess) { // neu chua xac thuc
+      
+      // Look for new cards
+      if ( ! mfrc522.PICC_IsNewCardPresent()) {
+        delay(50);
+        return;
+      }
+      // Select one of the cards
+      if ( ! mfrc522.PICC_ReadCardSerial()) {
+        delay(50);
+        return;
+      }
+      // Show some details of the PICC (that is: the tag/card)
+    
+      Serial.print(F("Detected card:"));
+      dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
+      Serial.println();
+    }
+    
 }

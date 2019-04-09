@@ -36,6 +36,7 @@ io.on("connection", function(socket) {
     //esp send message
     // {"RoomID":"C103", "Mess":"M02"}
     socket.on("esp-send-mess", function(data) {
+    	socket.emit("server-ack");
     	console.log("esp-send-mess");
     	console.log(data);
     	console.log("--------------------------");
