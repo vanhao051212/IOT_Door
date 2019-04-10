@@ -5,7 +5,7 @@ var app = express();
 app.use(express.static("./public"));
 app.set("view engine","ejs");
 app.set("views", "./views");
-var port = 3000;
+var port = 1989;
 var server = require("http").Server(app);
 
 var bodyParser = require('body-parser');
