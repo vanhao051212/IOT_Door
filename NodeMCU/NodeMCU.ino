@@ -25,12 +25,19 @@ LiquidCrystal_I2C lcd(0x27, lcdColumns, lcdRows);
 
 SocketIoClient webSocket;
 
-const char* Send_Check_ID="http://a1d8f49c.ngrok.io/checkRFID";
-const char* Host_Socket = "a1d8f49c.ngrok.io";
+//host để kiểm tra id của thẻ rf
+const char* Send_Check_ID="http://314c173f.ngrok.io/checkRFID";
+
+//host và port để esp kết nối socket
+const char* Host_Socket = "314c173f.ngrok.io";
 unsigned int Port_Socket = 80;
+
+
 const char* ssid = "UIT Public";
 const char* pwdWifi = "";
 
+
+//hàm kiểm tra id của thẻ rf
 bool Check_ID(String ID){
   HTTPClient http;
   http.begin(Send_Check_ID);
@@ -47,13 +54,17 @@ bool Check_ID(String ID){
   return false;
 }
 
+//biến kiểm tra xem node đã join room trên server hay chưa
 bool joinedRoom = false;
 
+//hàm handle sự kiện join room thành công do server gửi về
 void join_success(const char * payload, size_t length) {
   joinedRoom = true;
   USE_SERIAL.printf("join success");
 }
 
+
+//hàm handle tin nhắn từ server gửi về cho node mcu
 void handleMess(const char * payload, size_t length) {
   Serial.println(payload);
   DynamicJsonBuffer jsonBuffer;
@@ -71,6 +82,7 @@ void handleMess(const char * payload, size_t length) {
   lcd.print(Mess);
 }
 
+//hàm handle tin nhắn đã được gửi tới server, do server gửi về
 void ackMess(const char * payload, size_t length) {
   lcd.setCursor(0, 0);
   lcd.print("                ");
@@ -83,6 +95,8 @@ void ackMess(const char * payload, size_t length) {
   lcd.print("Ready to use!");
 }
 
+//hàm này cho phép gửi tin nhắn từ esp lên server
+//đủ điều kiện esp đã join room và xác nhận thẻ thành công thì mới được gửi
 bool ableSendMess = false;
 
 // Helper routine to dump a byte array as hex values to Serial
@@ -107,10 +121,13 @@ void dump_byte_array(byte *buffer, byte bufferSize) {
   Serial.println(strSend);
 }
 
+//tránh tình trạng print dòng ready to use quá nhiều lần trên lcd
 bool printedReady = false;
 
+//thời gian để gửi event yêu cầu join room lên server
 unsigned long time_join_room;
 
+//thời gian reset lại
 unsigned long time_out; //time out reset
 
 void(* resetFunc) (void) = 0;// reset function
@@ -174,7 +191,7 @@ void loop() {
     }
     if (!joinedRoom && (millis()-time_join_room>5000)) { //neu chua join room in server
       time_join_room = millis();
-      webSocket.emit("esp-send-join-room", "{\"RoomID\":\"R311\"}");
+      webSocket.emit("esp-send-join-room", "{\"RoomID\":\"R101\"}");
     }
     
     if (ableSendMess && !printedReady && joinedRoom) {
@@ -192,56 +209,56 @@ void loop() {
           lcd.print("                ");
           lcd.setCursor(0, 0);
           lcd.print("Sending...");
-          webSocket.emit("esp-send-mess", "{\"RoomID\":\"R311\",\"Mess\":\"M01\"}");
+          webSocket.emit("esp-send-mess", "{\"RoomID\":\"R101\",\"Mess\":\"M01\"}");
           break;
         case '2':
           lcd.setCursor(0, 0);
           lcd.print("                ");
           lcd.setCursor(0, 0);
           lcd.print("Sending...");
-          webSocket.emit("esp-send-mess", "{\"RoomID\":\"R311\",\"Mess\":\"M02\"}");
+          webSocket.emit("esp-send-mess", "{\"RoomID\":\"R101\",\"Mess\":\"M02\"}");
           break;
         case '3':
           lcd.setCursor(0, 0);
           lcd.print("                ");
           lcd.setCursor(0, 0);
           lcd.print("Sending...");
-          webSocket.emit("esp-send-mess", "{\"RoomID\":\"R311\",\"Mess\":\"M03\"}");
+          webSocket.emit("esp-send-mess", "{\"RoomID\":\"R101\",\"Mess\":\"M03\"}");
           break;
         case '4':
           lcd.setCursor(0, 0);
           lcd.print("                ");
           lcd.setCursor(0, 0);
           lcd.print("Sending...");
-          webSocket.emit("esp-send-mess", "{\"RoomID\":\"R311\",\"Mess\":\"M04\"}");
+          webSocket.emit("esp-send-mess", "{\"RoomID\":\"R101\",\"Mess\":\"M04\"}");
           break;
         case '5':
           lcd.setCursor(0, 0);
           lcd.print("                ");
           lcd.setCursor(0, 0);
           lcd.print("Sending...");
-          webSocket.emit("esp-send-mess", "{\"RoomID\":\"R311\",\"Mess\":\"M05\"}");
+          webSocket.emit("esp-send-mess", "{\"RoomID\":\"R101\",\"Mess\":\"M05\"}");
           break;
         case '6':
           lcd.setCursor(0, 0);
           lcd.print("                ");
           lcd.setCursor(0, 0);
           lcd.print("Sending...");
-          webSocket.emit("esp-send-mess", "{\"RoomID\":\"R311\",\"Mess\":\"M06\"}");
+          webSocket.emit("esp-send-mess", "{\"RoomID\":\"R101\",\"Mess\":\"M06\"}");
           break;
         case '7':
           lcd.setCursor(0, 0);
           lcd.print("                ");
           lcd.setCursor(0, 0);
           lcd.print("Sending...");
-          webSocket.emit("esp-send-mess", "{\"RoomID\":\"R311\",\"Mess\":\"M07\"}");
+          webSocket.emit("esp-send-mess", "{\"RoomID\":\"R101\",\"Mess\":\"M07\"}");
           break;
         case '8':
           lcd.setCursor(0, 0);
           lcd.print("                ");
           lcd.setCursor(0, 0);
           lcd.print("Sending...");
-          webSocket.emit("esp-send-mess", "{\"RoomID\":\"R311\",\"Mess\":\"M08\"}");
+          webSocket.emit("esp-send-mess", "{\"RoomID\":\"R101\",\"Mess\":\"M08\"}");
           break;
       }
     } else if (Serial.available() && !ableSendMess) {
