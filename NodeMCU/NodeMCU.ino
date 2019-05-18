@@ -162,19 +162,20 @@ void loop() {
       
       char val = Serial.read();
       if(val == '5') {
-        Serial.write((char)0x05); //ack arduino
         lcd.setCursor(0, 0);
         lcd.print("                ");
         lcd.setCursor(0, 0);
         lcd.print("HAHAHAHAHA!!!");
         webSocket.emit("esp-send-mess", "{\"RoomID\":\"R101\",\"Mess\":\"M05\"}");
         if(sendNotice("", "M05")) {
+          Serial.write((char)0x05); //ack arduino
           lcd.setCursor(0, 0);
           lcd.print("                ");
           lcd.setCursor(0, 0);
           lcd.print("CHET MAY ROI!!!");
         } else {
           if(sendNotice("", "M05")) {
+            Serial.write((char)0x05); //ack arduino
             lcd.setCursor(0, 0);
             lcd.print("                ");
             lcd.setCursor(0, 0);
@@ -222,7 +223,7 @@ void loop() {
                 webSocket.emit("esp-send-mess", charSendSocket);
                 break;
               }
-            }
+            } 
             lcd.setCursor(0, 0);
             lcd.print("                ");
             lcd.setCursor(0, 0);
