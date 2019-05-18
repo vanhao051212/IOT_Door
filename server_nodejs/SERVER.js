@@ -104,17 +104,46 @@ io.on("connection", function(socket) {
     });
 });
 
-app.post('/checkRFID', function(req, res) {
-  if (req.body && req.body.ID) {
-  	checkRFID();
-	async function checkRFID() {
+//receivedCmd
+app.post('/receivedCmd', function(req, res) {
+  var diemDanhCmd = 'M06';
+  var baoDongCmd = 'M05';
+  if (req.body) {
+  	checkCMD();
+	async function checkCMD() {
 	    try{
-	        var result = await db.checkRFID(req.body.ID);
-	        if (result) {
-	        	res.send("ACCEPT");
-	        } else {
-	        	res.send("DECLINE");
-	        }
+	    	if (req.body.CMD == diemDanhCmd) {
+	    		if(req.body.CardID && req.body.RoomID) {
+	    			var result = await db.insertDiemDanh(req.body.RoomID, req.body.CardID);
+	    			if(result) {
+	    				res.send("OK");
+	    			} else {
+	    				res.send("FAIL");
+	    			}
+	    		}
+	    	} else if (req.body.CMD == baoDongCmd) {
+	    		if(req.body.RoomID) {
+		    		var checkMessExist = await db.checkMessExist(req.body.RoomID, baoDongCmd);
+			        var checkMessCorrect = await db.checkMessCorrect(baoDongCmd);
+			        var checkRoomExist = await db.checkRoomExist(req.body.RoomID);
+			        if (!checkMessExist && checkMessCorrect && checkRoomExist) {
+			        	var roomInfo = await db.getSpecRoomInfo(req.body.RoomID);
+			        	if (roomInfo) {
+			        		status = JSON.parse(roomInfo.Mess);
+			        		status.push(baoDongCmd);
+			        		await db.updateMess(req.body.RoomID, JSON.stringify(status));
+			        		var roomInfo = await db.getSpecRoomInfo(req.body.RoomID);
+	        				var messInfo = await db.getMessInfo();
+	        				//send update status room to master
+	        				io.emit("server-send-update-status-room", {room: roomInfo, messes: messInfo});
+	        				res.send("OK");
+			        	}
+			        }
+			    }
+			    res.send("FAIL");
+	    	} else {
+	    		res.send("FAIL");
+	    	}
 	    }
 	    catch(e){throw (e);}
 	};
@@ -142,5 +171,24 @@ app.get('/control', function(req, res, next) {
 	    catch(e){throw (e);}
 	};
 });
+
+/*app.post('/checkRFID', function(req, res) {
+  if (req.body && req.body.ID) {
+  	checkRFID();
+	async function checkRFID() {
+	    try{
+	        var result = await db.checkRFID(req.body.ID);
+	        if (result) {
+	        	res.send("ACCEPT");
+	        } else {
+	        	res.send("DECLINE");
+	        }
+	    }
+	    catch(e){throw (e);}
+	};
+  } else {
+  	res.sendStatus(405);
+  }
+});*/
 
 server.listen(process.env.PORT || port);
