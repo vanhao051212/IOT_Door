@@ -25,16 +25,16 @@ LiquidCrystal_I2C lcd(0x27, lcdColumns, lcdRows);
 SocketIoClient webSocket;
 
 //host để kiểm tra id của thẻ rf
-const char* Send_Check_ID="http://192.168.43.241:1989/checkRFID";
-const char* Send_Cmd="http://192.168.43.241:1989/receivedCmd";
+const char* Send_Check_ID="http://192.168.20.135:8000/checkRFID";
+const char* Send_Cmd="http://192.168.20.135:8000/receivedCmd";
 
 //host và port để esp kết nối socket0
-const char* Host_Socket = "192.168.43.241";
-unsigned int Port_Socket = 1989;
+const char* Host_Socket = "192.168.20.135";
+unsigned int Port_Socket = 8000;
 
 
-const char* ssid = "Redmi";
-const char* pwdWifi = "thuc221221";
+const char* ssid = "UIT-hidden";
+const char* pwdWifi = "Uit201913032019";
 
 char charSendSocket[200];
 

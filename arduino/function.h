@@ -13,10 +13,6 @@ SoftwareSerial ss(8,9);   // RX, TX
 #define G1 10
 #define G2 11
 
-bool falt_projector = false;
-
-unsigned long timeSendInterval;
-
 void(* resetFunc) (void) = 0;// reset function
 
 void INIT();
