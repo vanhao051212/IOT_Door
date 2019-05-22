@@ -25,7 +25,7 @@ io.on("connection", function(socket) {
     	listRooms();
 		async function listRooms() {
 		    try{
-		        var roomInfo = await db.getRoomInfo();
+		        var roomInfo = await db.getListRoom();
 		        if (roomInfo) {
 		        	socket.emit("server-send-list-rooms", roomInfo);
 		        }
@@ -40,7 +40,7 @@ io.on("connection", function(socket) {
     	console.log("esp-send-mess");
     	console.log(data);
     	console.log("--------------------------");
-    	if(data.RoomID && data.Mess) {
+    	if(data.RoomID && data.MessID) {
     		tryUpdateSend();
     		/*
     		- kiem tra mess co ton tai trong database hay chua
@@ -49,20 +49,20 @@ io.on("connection", function(socket) {
     		*/
     		async function tryUpdateSend() {
 				try{
-			        var checkMessExist = await db.checkMessExist(data.RoomID, data.Mess);
-			        var checkMessCorrect = await db.checkMessCorrect(data.Mess);
+			        var checkMessExist = await db.checkMessExist(data.RoomID, data.MessID);
+			        var checkMessCorrect = await db.checkMessCorrect(data.MessID);
 			        var checkRoomExist = await db.checkRoomExist(data.RoomID);
 			        if (!checkMessExist && checkMessCorrect && checkRoomExist) {
-			        	var roomInfo = await db.getSpecRoomInfo(data.RoomID);
-			        	if (roomInfo) {
-			        		status = JSON.parse(roomInfo.Mess);
-			        		status.push(data.Mess);
-			        		await db.updateMess(data.RoomID, JSON.stringify(status));
-			        		var roomInfo = await db.getSpecRoomInfo(data.RoomID);
-	        				var messInfo = await db.getMessInfo();
-	        				//send update status room to master
-	        				io.sockets.in("master").emit("server-send-update-status-room", {room: roomInfo, messes: messInfo});
+			        	console.log("OK");
+			        	if(data.CardID) {
+			        		await db.insertMess(data.RoomID, data.MessID, data.CardID);
+			        	} else {
+			        		await db.insertMess(data.RoomID, data.MessID, "");
 			        	}
+			        	var roomInfo = await db.getSpecRoomInfo(data.RoomID);
+	        			var messInfo = await db.getMessInfo();
+			        	//send update status room to master
+						io.sockets.in("master").emit("server-send-update-status-room", {room: roomInfo, messes: messInfo});
 			        }
 			    }
 			    catch(e){throw (e);}
@@ -95,11 +95,13 @@ io.on("connection", function(socket) {
     socket.on("web-send-reset-room", function(room) {
     	tryResetMess();
     	async function tryResetMess() {
-    		await db.updateMess(room.RoomID, "[]");
-    		var roomInfo = await db.getSpecRoomInfo(room.RoomID);
-			var messInfo = await db.getMessInfo();
-			//send update status room to master
-			io.sockets.in("master").emit("server-send-update-status-room", {room: roomInfo, messes: messInfo});
+    		var result = await db.deleteAllRoomStatus(room.RoomID);
+    		if(result) {
+    			var roomInfo = await db.getSpecRoomInfo(room.RoomID);
+				var messInfo = await db.getMessInfo();
+				//send update status room to master
+				io.sockets.in("master").emit("server-send-update-status-room", {room: roomInfo, messes: messInfo, RoomID: room.RoomID});
+    		}
     	}
     });
 });
@@ -108,6 +110,7 @@ io.on("connection", function(socket) {
 app.post('/receivedCmd', function(req, res) {
   var diemDanhCmd = 'M06';
   var baoDongCmd = 'M05';
+  console.log(req.body);
   if (req.body) {
   	checkCMD();
 	async function checkCMD() {
@@ -124,10 +127,8 @@ app.post('/receivedCmd', function(req, res) {
 	    	} else if (req.body.CMD == baoDongCmd) {
 	    		if(req.body.RoomID) {
 		    		var checkMessExist = await db.checkMessExist(req.body.RoomID, baoDongCmd);
-			        var checkMessCorrect = await db.checkMessCorrect(baoDongCmd);
 			        var checkRoomExist = await db.checkRoomExist(req.body.RoomID);
-			        if (!checkMessExist && checkMessCorrect && checkRoomExist) {
-			        	var roomInfo = await db.getSpecRoomInfo(req.body.RoomID);
+			        if (!checkMessExist && checkRoomExist) {
 			        	if (roomInfo) {
 			        		status = JSON.parse(roomInfo.Mess);
 			        		status.push(baoDongCmd);
@@ -160,10 +161,11 @@ app.get('/control', function(req, res, next) {
     getRoomInfo();
 	async function getRoomInfo() {
 	    try{
-	        var roomInfo = await db.getRoomInfo();
-	        var messInfo = await db.getMessInfo();
-	        if (roomInfo && messInfo) {
-	        	res.render("control", {rooms:roomInfo, messes: messInfo});
+	        var roomsInfo = await db.getRoomInfo();
+	        var messesInfo = await db.getMessInfo();
+	        var listRooms = await db.getListRoom();
+	        if (listRooms) {
+	        	res.render("control", {rooms: listRooms, roomsInfo: roomsInfo, messesInfo: messesInfo});
 	        } else {
 	        	res.send("0 result");
 	        }

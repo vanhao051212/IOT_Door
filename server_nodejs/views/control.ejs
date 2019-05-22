@@ -8,31 +8,46 @@
 	<script type="text/javascript" src="xuly.js"></script>
 	<link rel="stylesheet" type="text/css" href="layout.css" />
 </head>
-<body>
+<body  onload = "JavaScript:AutoRefresh(120000);"> 
+	<audio id="myAudio">
+		<source src="alert.mp3" type="audio/mpeg">
+	</audio>
 	<div id="wrapper">
 		<%
 		var html="";
+		var htmlAlert="<input type='text' id='alertMark' value='Normal' disabled hidden>";
 		rooms.forEach(function(room) {
-			var htmlStatus="";
-			var MessIDs=JSON.parse(room.Mess);
+			var htmlStatus = "";
+			var MessIDs=[];
+			if(roomsInfo) {
+				roomsInfo.forEach(function(roomInfo) {
+					if(room.RoomID == roomInfo.RoomID) {
+						MessIDs.push(roomInfo.MessID);
+					}
+				});
+			}
 			MessIDs.forEach(function(MessID) {
-				messes.forEach(function(mess) {
+				messesInfo.forEach(function(mess) {
 					if(MessID == mess.MessID) {
-						htmlStatus+='<p>'+mess.MessInFo+'</p>';
+						if(MessID == 'M05') {
+							htmlStatus+='<p style = "background-color:#ffa366; color:white; font-size: 20px;">'+mess.MessInFo+'</p>';
+							htmlAlert="<input type='text' id='alertMark' value='Alert' disabled hidden>";
+						} else 
+							htmlStatus+='<p>'+mess.MessInFo+'</p>';
 					}
 				});
 			});
 			html+='<div id="'+room.RoomID+'" class="room">'
-				+'<h2>Phong '+room.RoomID+'</h2>'
+				+'<h2>'+room.RoomName+'</h2>'
 				+'<div id="info_'+room.RoomID+'">'+htmlStatus+'</div>'
 				+'<input type="text" class="txtMessage" id="txtSend_'+room.RoomID+'">'
 				+'<button type="button" class="btnSend" id="btnSend_'+room.RoomID+'">Send</button><br><br><br>'
 				+'<button type="button" class="btnReset" id="btnReset_'+room.RoomID+'">Reset</button>'
 				+'</div>';
 		});
+		html+=htmlAlert;
 		%>
 		<%- html %>
 	</div>
-	<button type="button" id="alert">Alert</button>
 </body>
 </html>

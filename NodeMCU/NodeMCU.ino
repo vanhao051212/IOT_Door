@@ -25,16 +25,16 @@ LiquidCrystal_I2C lcd(0x27, lcdColumns, lcdRows);
 SocketIoClient webSocket;
 
 //host để kiểm tra id của thẻ rf
-const char* Send_Check_ID="http://314c173f.ngrok.io/checkRFID";
-const char* Send_Cmd="http://314c173f.ngrok.io/receivedCmd";
+const char* Send_Check_ID="http://192.168.43.241:1989/checkRFID";
+const char* Send_Cmd="http://192.168.43.241:1989/receivedCmd";
 
-//host và port để esp kết nối socket
-const char* Host_Socket = "192.168.137.1";
+//host và port để esp kết nối socket0
+const char* Host_Socket = "192.168.43.241";
 unsigned int Port_Socket = 1989;
 
 
-const char* ssid = "lee-lap";
-const char* pwdWifi = "lee221221";
+const char* ssid = "Redmi";
+const char* pwdWifi = "thuc221221";
 
 char charSendSocket[200];
 
@@ -88,24 +88,16 @@ void setup() {
     
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("Initilizing...");
+    lcd.print("Khoi dong....");
     
-    Serial.begin(115200);
+    Serial.begin(9600);
 
     SPI.begin();           // Init SPI bus
     mfrc522.PCD_Init();    // Init MFRC522 
 
-    Serial.setDebugOutput(true);
-
     Serial.println();
     Serial.println();
     Serial.println();
-
-    for(uint8_t t = 4; t > 0; t--) {
-        Serial.printf("[SETUP] BOOT WAIT %d...\n", t);
-        Serial.flush();
-        delay(1000);
-    }
     
     WiFi.mode(WIFI_STA);
 
@@ -143,7 +135,7 @@ void loop() {
     if (millis() - time_out > 300000){
       lcd.clear();
       lcd.setCursor(0, 0);
-      lcd.print("Auto reset");
+      lcd.print("Reset tu dong");
       ESP.restart();
     }
     if (!joinedRoom && (millis()-time_join_room>5000)) { //neu chua join room in server
@@ -157,16 +149,15 @@ void loop() {
       lcd.setCursor(0, 0);
       lcd.print("San sang dung!");
     }
-    if(Serial.available()) {
+    if(Serial.available() > 0) {
       unsigned long timeCheckCard = millis();
-      
       char val = Serial.read();
       if(val == '5') {
         lcd.setCursor(0, 0);
         lcd.print("                ");
         lcd.setCursor(0, 0);
         lcd.print("HAHAHAHAHA!!!");
-        webSocket.emit("esp-send-mess", "{\"RoomID\":\"R101\",\"Mess\":\"M05\"}");
+        webSocket.emit("esp-send-mess", "{\"RoomID\":\"R101\",\"MessID\":\"M05\"}");
         if(sendNotice("", "M05")) {
           Serial.write((char)0x05); //ack arduino
           lcd.setCursor(0, 0);
@@ -206,19 +197,24 @@ void loop() {
               lcd.setCursor(0, 0);
               lcd.print("Fail :(");
             }
+            break;
           }
         }
       }
       if (joinedRoom) { // neu uart den + xac thuc + da join room
         switch(val) {
           case '1':
+            lcd.setCursor(0, 0);
+            lcd.print("                ");
+            lcd.setCursor(0, 0);
+            lcd.print("Quet the gui!");
             timeCheckCard = millis();
             while (millis() - timeCheckCard < 4000) {
               if(readCardFunc()) {
                 lcd.setCursor(0, 0);
                 lcd.print("                ");
                 lcd.setCursor(0, 0);
-                lcd.print("Sending...");
+                lcd.print("Dang gui...");
                 processCharSendSocket("R101", "M01", strID);
                 webSocket.emit("esp-send-mess", charSendSocket);
                 break;
@@ -227,16 +223,20 @@ void loop() {
             lcd.setCursor(0, 0);
             lcd.print("                ");
             lcd.setCursor(0, 0);
-            lcd.print("Terminate!");
+            lcd.print("Ket thuc!");
             break;
           case '2':
+            lcd.setCursor(0, 0);
+            lcd.print("                ");
+            lcd.setCursor(0, 0);
+            lcd.print("Quet the gui!");
             timeCheckCard = millis();
             while (millis() - timeCheckCard < 4000) {
               if(readCardFunc()) {
                 lcd.setCursor(0, 0);
                 lcd.print("                ");
                 lcd.setCursor(0, 0);
-                lcd.print("Sending...");
+                lcd.print("Dang gui...");
                 processCharSendSocket("R101", "M02", strID);
                 webSocket.emit("esp-send-mess", charSendSocket);
                 break;
@@ -245,16 +245,20 @@ void loop() {
             lcd.setCursor(0, 0);
             lcd.print("                ");
             lcd.setCursor(0, 0);
-            lcd.print("Terminate!");
+            lcd.print("Ket thuc!");
             break;
           case '3':
+            lcd.setCursor(0, 0);
+            lcd.print("                ");
+            lcd.setCursor(0, 0);
+            lcd.print("Quet the gui!");
             timeCheckCard = millis();
             while (millis() - timeCheckCard < 4000) {
               if(readCardFunc()) {
                 lcd.setCursor(0, 0);
                 lcd.print("                ");
                 lcd.setCursor(0, 0);
-                lcd.print("Sending...");
+                lcd.print("Dang gui...");
                 processCharSendSocket("R101", "M03", strID);
                 webSocket.emit("esp-send-mess", charSendSocket);
                 break;
@@ -263,7 +267,7 @@ void loop() {
             lcd.setCursor(0, 0);
             lcd.print("                ");
             lcd.setCursor(0, 0);
-            lcd.print("Terminate!");
+            lcd.print("Ket thuc!");
             break;
           case '4':
             timeCheckCard = millis();
@@ -312,15 +316,14 @@ void convertStringToChar(String str) {
 void processCharSendSocket(String RoomID, String Mess, String CardID) {
   DynamicJsonBuffer jsonBuffer;
 
-  String stringJson = "{\"RoomID\":\"R101\",\"Mess\":\"M01\",\"CardID\":\"ABCDABCD\"}";
+  String stringJson = "{\"RoomID\":\"R101\",\"MessID\":\"M01\",\"CardID\":\"ABCDABCD\"}";
   JsonObject& root = jsonBuffer.parseObject(stringJson);
 
   root["RoomID"] = RoomID;
-  root["Mess"] = Mess;
+  root["MessID"] = Mess;
   root["CardID"] = CardID;
-
+  stringJson = "";
   root.printTo(stringJson);
-
   convertStringToChar(stringJson);
 }
 
@@ -366,19 +369,24 @@ void ackMess(const char * payload, size_t length) {
   lcd.setCursor(0, 0);
   lcd.print("                ");
   lcd.setCursor(0, 0);
-  lcd.print("Send successful!");
+  lcd.print("Gui thanh cong");
   delay(1500);
   lcd.setCursor(0, 0);
   lcd.print("                ");
   lcd.setCursor(0, 0);
-  lcd.print("Ready to use!");
+  lcd.print("San sang dung!");
 }
 
 void dump_byte_array(byte *buffer, byte bufferSize) {
   strID="";
   for (byte i = 0; i < bufferSize; i++) {
-    strID+=String(buffer[i],HEX);
+    String valHex = String(buffer[i],HEX);
+    if(valHex.length() == 1) {
+      valHex = String(0)+valHex;
+    }
+    strID+=valHex;
   }
+  strID.toUpperCase();
   Serial.println(strID);
 }
 
@@ -394,7 +402,6 @@ bool readCardFunc(void) {
     return false;
   }
   // Show some details of the PICC (that is: the tag/card)
-  Serial.print(F("Detected card:"));
   dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
   return true;
 }

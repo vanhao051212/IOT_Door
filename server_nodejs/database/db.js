@@ -21,17 +21,12 @@ exports.checkRFID = function (ID) {
 	});
 }
 
-exports.checkMessExist = function (RoomID, Mess) {
+exports.checkMessExist = function (RoomID, MessID) {
 	return new Promise (function (resolve, reject) {
-		pool.query("select * from room where RoomID='"+RoomID+"';", function(err, rows, fields) {
+		pool.query("select * from room where RoomID='"+RoomID+"' and MessID='"+MessID+"';", function(err, rows, fields) {
 			if (err) reject(err);
 			if(rows.length>=1) {
-				var message = JSON.parse(rows[0].Mess);
-				if(message.indexOf(Mess) >=0 ) {
-					resolve(true);
-				} else {
-					resolve(false);
-				}
+				resolve(true);
 			} else {
 				resolve(false);
 			}
@@ -42,7 +37,7 @@ exports.checkMessExist = function (RoomID, Mess) {
 exports.checkMessCorrect = function (MessID) {
 	return new Promise (function (resolve, reject) {
 		pool.query("select * from mess where MessID='"+MessID+"';", function(err, rows, fields) {
-			if (err) reject(err);
+			if (err) throw(err);
 			if(rows.length>=1) {
 				resolve(true);
 			} else {
@@ -54,7 +49,7 @@ exports.checkMessCorrect = function (MessID) {
 
 exports.checkRoomExist = function (RoomID) {
 	return new Promise (function (resolve, reject) {
-		pool.query("select * from room where RoomID='"+RoomID+"';", function(err, rows, fields) {
+		pool.query("select * from roomlist where RoomID='"+RoomID+"';", function(err, rows, fields) {
 			if (err) reject(err);
 			if(rows.length>=1) {
 				resolve(true);
@@ -78,18 +73,33 @@ exports.getRoomInfo = function () {
 	});
 }
 
-exports.getSpecRoomInfo = function (RoomID) {
+exports.getListRoom = function () {
 	return new Promise (function (resolve, reject) {
-		pool.query("select * from room where RoomID='"+RoomID+"';", function(err, rows, fields) {
+		pool.query("select * from roomlist", function(err, rows, fields) {
 			if (err) reject(err);
 			if(rows.length>=1) {
-				resolve(rows[0]);
+				resolve(rows);
 			} else {
 				resolve(false);
 			}
 		});
 	});
 }
+
+exports.getSpecRoomInfo = function (RoomID) {
+	return new Promise (function (resolve, reject) {
+		pool.query("select * from room where RoomID='"+RoomID+"';", function(err, rows, fields) {
+			if (err) reject(err);
+			if(rows.length>=1) {
+				resolve(rows);
+			} else {
+				resolve(false);
+			}
+		});
+	});
+}
+
+
 
 exports.getMessInfo = function () {
 	return new Promise (function (resolve, reject) {
@@ -104,9 +114,16 @@ exports.getMessInfo = function () {
 	});
 }
 
-exports.updateMess = function (RoomID, Mess) {
+exports.insertMess = function (RoomID, MessID, CardID) {
 	return new Promise (function (resolve, reject) {
-		pool.query("update room set Mess='"+Mess+"' where RoomID='"+RoomID+"'", function(err, result) { 
+		var d=new Date();
+          var dformat = [d.getFullYear(),
+                         d.getMonth()+1,
+                         d.getDate()].join('-')+' '+
+                        [d.getHours(),
+                         d.getMinutes(),
+                         d.getSeconds()].join(':');
+		pool.query("insert into room (RoomID, MessID, CardID, TimeGet) values ('"+RoomID+"','"+MessID+"','"+CardID+"','"+dformat+"')", function(err, result) { 
 			if (err) reject(err);
 			resolve(true);
 		});
@@ -115,21 +132,25 @@ exports.updateMess = function (RoomID, Mess) {
 
 exports.insertDiemDanh = function(RoomID, CardID) {
 	return new Promise (function (resolve, reject) {
-		var today = new Date();
-		var dd = today.getDate();
-		var mm = today.getMonth() + 1; //January is 0!
-
-		var yyyy = today.getFullYear();
-		if (dd < 10) {
-		  dd = '0' + dd;
-		} 
-		if (mm < 10) {
-		  mm = '0' + mm;
-		} 
-		var today = dd + '/' + mm + '/' + yyyy;
-		pool.query("insert into diemdanh (RoomID, CardID, TimeGet) values ('"+RoomID+"','"+CardID+"','"+today+"')", function(err, result) { 
+		var d=new Date();
+          var dformat = [d.getFullYear(),
+                         d.getMonth()+1,
+                         d.getDate()].join('-')+' '+
+                        [d.getHours(),
+                         d.getMinutes(),
+                         d.getSeconds()].join(':');
+		pool.query("insert into diemdanh (RoomID, CardID, TimeGet) values ('"+RoomID+"','"+CardID+"','"+dformat+"')", function(err, result) { 
 			if (err) resolve(false);
 			resolve(true);
 		});
-	}
+	});
+}
+
+exports.deleteAllRoomStatus = function (RoomID) {
+	return new Promise (function (resolve, reject) {
+		pool.query("delete from room where RoomID='"+RoomID+"'", function(err, rows, fields) {
+			if (err) throw(err);
+			resolve(true);
+		});
+	});
 }

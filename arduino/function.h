@@ -10,23 +10,26 @@ SoftwareSerial ss(8,9);   // RX, TX
 #define Led_1 6
 #define Led_2 7
 
-#define Pull_up 10
-#define Pull_down 11
+#define G1 10
+#define G2 11
 
 bool falt_projector = false;
+
+unsigned long timeSendInterval;
 
 void(* resetFunc) (void) = 0;// reset function
 
 void INIT();
-void Send_uart(int value);
+void Send_uart(char value);
 void Check_button();
 void Check_projector();
 
+bool firstSend = true;
 /*======================================================================================================*/
 void INIT()
 {
   Serial.begin(9600);
-  ss.begin(115200);
+  ss.begin(9600);
 
   pinMode(Status_1, INPUT);
   pinMode(Status_2, INPUT);
@@ -39,12 +42,12 @@ void INIT()
   digitalWrite(Led_1, HIGH);
   digitalWrite(Led_2, HIGH);
   
-  pinMode(Pull_up, INPUT_PULLUP);
-  pinMode(Pull_down, INPUT);
-  digitalWrite(Pull_down, LOW);
+  pinMode(G1, INPUT_PULLUP);
+  pinMode(G2, INPUT_PULLUP);
+  delay(500);
 }
 
-void Send_uart(int value)
+void Send_uart(char value)
 {
   ss.write(value);
 }
@@ -53,42 +56,53 @@ void Check_button()
 {
   if (!digitalRead(Status_1))
   {
-    while (!digitalRead(Status_1));
-    Send_uart(char(1));
+    delay(50);
+    if(!digitalRead(Status_1)) {
+      Send_uart('1');
+      delay(2000);
+    }
   } 
 
   if (!digitalRead(Status_2))
   {
-    while (!digitalRead(Status_2));
-    Send_uart(char(2));
+    delay(50);
+    if(!digitalRead(Status_2)) {
+      Send_uart('2');
+      delay(2000);
+    }
   }
 
   if (!digitalRead(Status_3))
   {
-    while (!digitalRead(Status_3));
-    Send_uart(char(3));
+    delay(50);
+    if(!digitalRead(Status_3)) {
+      Send_uart('3');
+      delay(2000);
+    }
   }
 
   if (!digitalRead(Status_4))
   {
-    while (!digitalRead(Status_4));
-    Send_uart(char(6));
+    delay(50);
+    if(!digitalRead(Status_4)) {
+      Send_uart('6');
+      delay(2000);
+    }
   }
 }
 
 void Check_projector()
 {
-  if (digitalRead(Pull_up))
-  {
+  if (digitalRead(G1) || !digitalRead(G2)) {
     falt_projector = true;
-  } else {
-    falt_projector = false;
+    timeSendInterval=millis();
   }
-
-  if (!digitalRead(Pull_down))
-  {
-    falt_projector = true;
-  } else {
+  if (!digitalRead(G1) && digitalRead(G2)) {
     falt_projector = false;
+    firstSend=true;
+  }
+  if(firstSend && falt_projector) {
+    firstSend = false;
+    Send_uart('5');
   }
 }

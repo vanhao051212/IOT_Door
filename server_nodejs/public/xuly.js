@@ -1,8 +1,17 @@
+function AutoRefresh( t ) {
+	setTimeout("location.reload(true);", t);
+}
 $(document).ready(function() {
 	var socket = io();
+	var x = document.getElementById("myAudio");
+	x.pause();
 	socket.emit("join-room");
 
 	socket.on("server-send-list-rooms", function(rooms) {
+		if($("#alertMark").val() == "Alert") {
+			x.pause();
+			x.play();
+		}
 		rooms.forEach(function(room) {
 			var txtID = '#txtSend_'+room.RoomID;
 			var btnSendID = '#btnSend_'+room.RoomID;
@@ -19,32 +28,27 @@ $(document).ready(function() {
 	socket.on("server-send-update-status-room", function(data) {
 		if(data.room && data.messes) {
 			var htmlStatus="";
-			var MessIDs=JSON.parse(data.room.Mess);
+			var MessIDs=[];
+			data.room.forEach(function(roomInfo) {
+				MessIDs.push(roomInfo.MessID);
+			});
 			MessIDs.forEach(function(MessID) {
 				data.messes.forEach(function(mess) {
 					if(MessID == mess.MessID) {
-						htmlStatus+='<p>'+mess.MessInFo+'</p>';
+						if(MessID == 'M05') {
+							htmlStatus+='<p style = "background-color:#ffa366; color:white; font-size: 20px;">'+mess.MessInFo+'</p>';
+							x.pause();
+							x.play();
+						} else
+							htmlStatus+='<p>'+mess.MessInFo+'</p>';
 					}
 				});
 			});
-			var changeStatusRoom = "#info_" + data.room.RoomID;
-			console.log(htmlStatus);
+			var changeStatusRoom = "#info_" + data.room[0].RoomID;
 			$(changeStatusRoom).html(htmlStatus);
+		} else if(!data.room && data.RoomID) {
+			var changeStatusRoom = "#info_" + data.RoomID;
+			$(changeStatusRoom).html("");
 		}
 	});
-	$("#alert").click(function() {
-		beep(100, 1000, 1000);
-	});
 });
-
-function beep(vol, freq, duration){
-  v=a.createOscillator()
-  u=a.createGain()
-  v.connect(u)
-  v.frequency.value=freq
-  v.type="square"
-  u.connect(a.destination)
-  u.gain.value=vol*0.01
-  v.start(a.currentTime)
-  v.stop(a.currentTime+duration*0.001)
-}

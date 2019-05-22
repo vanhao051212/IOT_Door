@@ -8,16 +8,30 @@ create table gv (
 	TenGV varchar (50)
 );
 delete from gv;
+update GV SET ID = '192 111 78 25' where ID = '192 37 245 25';
 insert into gv (ID, TenGV) values ("192 37 245 25", "Ngo Quoc Nhu");
+insert into gv (ID, TenGV) values ("5 187 141 185", "Le Trong Thuc");
 
+drop table room;
 create table room (
-	RoomID varchar(20) primary key,
-    Mess varchar(500)
+	Ind bigint primary key auto_increment,
+	RoomID varchar(10) not null,
+    MessID varchar(5),
+    CardID varchar(10),
+    TimeGet datetime
 );
 
+drop table mess;
 create table mess (
-	MessID varchar(50) primary key,
+	MessID varchar(5) primary key,
     MessInFo varchar(200)
+);
+
+create table diemdanh (
+	Ind bigint primary key auto_increment,
+    RoomID varchar(20),
+    CardID varchar(10),
+    TimeGet datetime
 );
 
 insert into mess (MessID, MessInFo) values ('M01', 'Remote máy chiếu');
