@@ -12,42 +12,16 @@
 	<audio id="myAudio">
 		<source src="alert.mp3" type="audio/mpeg">
 	</audio>
-	<div id="wrapper">
-		<%
+	<%
 		var html="";
-		var htmlAlert="<input type='text' id='alertMark' value='Normal' disabled hidden>";
-		rooms.forEach(function(room) {
-			var htmlStatus = "";
-			var MessIDs=[];
-			if(roomsInfo) {
-				roomsInfo.forEach(function(roomInfo) {
-					if(room.RoomID == roomInfo.RoomID) {
-						MessIDs.push(roomInfo.MessID);
-					}
-				});
-			}
-			MessIDs.forEach(function(MessID) {
-				messesInfo.forEach(function(mess) {
-					if(MessID == mess.MessID) {
-						if(MessID == 'M05') {
-							htmlStatus+='<p style = "background-color:#ffa366; color:white; font-size: 20px;">'+mess.MessInFo+'</p>';
-							htmlAlert="<input type='text' id='alertMark' value='Alert' disabled hidden>";
-						} else 
-							htmlStatus+='<p>'+mess.MessInFo+'</p>';
-					}
-				});
-			});
-			html+='<div id="'+room.RoomID+'" class="room">'
-				+'<h2>'+room.RoomName+'</h2>'
-				+'<div id="info_'+room.RoomID+'">'+htmlStatus+'</div>'
-				+'<input type="text" class="txtMessage" id="txtSend_'+room.RoomID+'">'
-				+'<button type="button" class="btnSend" id="btnSend_'+room.RoomID+'">Send</button><br><br><br>'
-				+'<button type="button" class="btnReset" id="btnReset_'+room.RoomID+'">Reset</button>'
-				+'</div>';
+		html+='<select id="selectArea">'
+		areas.forEach(function(area) {
+			html+='<option value="'+area.Area+'">'+area.Area+'</option>';
 		});
-		html+=htmlAlert;
-		%>
-		<%- html %>
+		html+='</select>'
+	%>
+	<%- html %>
+	<div id="wrapper">
 	</div>
 </body>
 </html>

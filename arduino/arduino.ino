@@ -34,11 +34,14 @@ void setup()
 void loop()
 {
   Check_button();
+  
   Check_projector();
+  
   if(falt_projector) {
     if(millis() - timeSendInterval > 5000) {
       timeSendInterval=millis();
       Send_uart('5');
+      Serial.println("Alert");
     }
   }
 }
@@ -49,10 +52,10 @@ void INIT()
   Serial.begin(9600);
   ss.begin(9600);
 
-  pinMode(Status_1, INPUT);
-  pinMode(Status_2, INPUT);
-  pinMode(Status_3, INPUT);
-  pinMode(Status_4, INPUT);
+  pinMode(Status_1, INPUT_PULLUP);
+  pinMode(Status_2, INPUT_PULLUP);
+  pinMode(Status_3, INPUT_PULLUP);
+  pinMode(Status_4, INPUT_PULLUP);
 
   pinMode(Led_1, OUTPUT);
   pinMode(Led_2, OUTPUT);
@@ -108,12 +111,12 @@ void Check_button()
     }
   }
 }
-
-void Check_projector()
-{
+void Check_projector() {
   if (digitalRead(G1) || !digitalRead(G2)) {
-    falt_projector = true;
-    timeSendInterval=millis();
+    delay(1000);
+    if (digitalRead(G1) || !digitalRead(G2)) {
+      falt_projector = true;
+    }
   }
   if (!digitalRead(G1) && digitalRead(G2)) {
     falt_projector = false;
@@ -121,6 +124,8 @@ void Check_projector()
   }
   if(firstSend && falt_projector) {
     firstSend = false;
+    Serial.println("Alert");
     Send_uart('5');
+    timeSendInterval=millis();
   }
 }

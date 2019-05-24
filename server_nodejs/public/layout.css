@@ -6,6 +6,8 @@ body{background-color: #cee4ea}
 .btnSend{width: 19%;float: right;}
 .btnReset{width: 50%; height: 10%; float: none;}
 
+select{width: 19%;height: 20%; border: solid 2px black; float: left;font-size: 25px;margin-top:0%;}
+
 div.user{
 text-align: center;
 width: 50px;

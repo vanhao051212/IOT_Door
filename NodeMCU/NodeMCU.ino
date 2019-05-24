@@ -153,24 +153,22 @@ void loop() {
       unsigned long timeCheckCard = millis();
       char val = Serial.read();
       if(val == '5') {
-        lcd.setCursor(0, 0);
-        lcd.print("                ");
-        lcd.setCursor(0, 0);
-        lcd.print("HAHAHAHAHA!!!");
         webSocket.emit("esp-send-mess", "{\"RoomID\":\"R101\",\"MessID\":\"M05\"}");
         if(sendNotice("", "M05")) {
-          Serial.write((char)0x05); //ack arduino
           lcd.setCursor(0, 0);
           lcd.print("                ");
           lcd.setCursor(0, 0);
-          lcd.print("CHET MAY ROI!!!");
+          lcd.print("Thanh cong!");
         } else {
+          lcd.setCursor(0, 0);
+          lcd.print("                ");
+          lcd.setCursor(0, 0);
+          lcd.print("That bai thu lai");
           if(sendNotice("", "M05")) {
-            Serial.write((char)0x05); //ack arduino
             lcd.setCursor(0, 0);
             lcd.print("                ");
             lcd.setCursor(0, 0);
-            lcd.print("CHET MAY ROI!!!");
+            lcd.print("Thanh cong!");
           }
         }
       }

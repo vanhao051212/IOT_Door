@@ -86,6 +86,19 @@ exports.getListRoom = function () {
 	});
 }
 
+exports.getListArea = function () {
+	return new Promise (function (resolve, reject) {
+		pool.query("select distinct Area from roomlist;", function(err, rows, fields) {
+			if (err) reject(err);
+			if(rows.length>=1) {
+				resolve(rows);
+			} else {
+				resolve(false);
+			}
+		});
+	});
+}
+
 exports.getSpecRoomInfo = function (RoomID) {
 	return new Promise (function (resolve, reject) {
 		pool.query("select * from room where RoomID='"+RoomID+"';", function(err, rows, fields) {
@@ -99,7 +112,45 @@ exports.getSpecRoomInfo = function (RoomID) {
 	});
 }
 
+exports.getRoomInfoArea = function (Area) {
+	return new Promise (function (resolve, reject) {
+		pool.query("select room.RoomID, room.MessID from roomlist, room where room.RoomID = roomlist.RoomID and roomlist.Area = '"+Area+"';", function(err, rows, fields) {
+			if (err) reject(err);
+			if(rows.length>=1) {
+				resolve(rows);
+			} else {
+				resolve(false);
+			}
+		});
+	});
+}
 
+
+exports.getRoomArea = function (Area) {
+	return new Promise (function (resolve, reject) {
+		pool.query("select * from roomlist where Area='"+Area+"';", function(err, rows, fields) {
+			if (err) reject(err);
+			if(rows.length>=1) {
+				resolve(rows);
+			} else {
+				resolve(false);
+			}
+		});
+	});
+}
+
+exports.getAreaRoomID = function (RoomID) {
+	return new Promise (function (resolve, reject) {
+		pool.query("select Area from roomlist where RoomID='"+RoomID+"';", function(err, rows, fields) {
+			if (err) reject(err);
+			if(rows.length>=1) {
+				resolve(rows[0].Area);
+			} else {
+				resolve(false);
+			}
+		});
+	});
+}
 
 exports.getMessInfo = function () {
 	return new Promise (function (resolve, reject) {
