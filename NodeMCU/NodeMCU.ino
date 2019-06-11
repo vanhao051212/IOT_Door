@@ -149,6 +149,24 @@ void loop() {
       lcd.setCursor(0, 0);
       lcd.print("San sang dung!");
     }
+
+    if (readCardFunc()) {
+      lcd.setCursor(0, 0);
+      lcd.print("                ");
+      lcd.setCursor(0, 0);
+      lcd.print("  Da nhan the");
+      if(sendNotice(strID, "M06")) {
+        lcd.setCursor(0, 0);
+        lcd.print("                ");
+        lcd.setCursor(0, 0);
+        lcd.print("Everything OK :)");
+      } else {
+        lcd.setCursor(0, 0);
+        lcd.print("                ");
+        lcd.setCursor(0, 0);
+        lcd.print("Fail :<");
+      }
+    }
     if(Serial.available() > 0) {
       unsigned long timeCheckCard = millis();
       char val = Serial.read();
@@ -169,33 +187,6 @@ void loop() {
             lcd.print("                ");
             lcd.setCursor(0, 0);
             lcd.print("Thanh cong!");
-          }
-        }
-      }
-      if(val == '6') {
-        lcd.setCursor(0, 0);
-        lcd.print("                ");
-        lcd.setCursor(0, 0);
-        lcd.print("Quet the di!");
-        timeCheckCard = millis();
-        while (millis() - timeCheckCard < 4000) {
-          if(readCardFunc()) {
-            lcd.setCursor(0, 0);
-            lcd.print("                ");
-            lcd.setCursor(0, 0);
-            lcd.print("Da nhan the!");
-            if(sendNotice(strID, "M06")) {
-              lcd.setCursor(0, 0);
-              lcd.print("                ");
-              lcd.setCursor(0, 0);
-              lcd.print("Everything OK :)");
-            } else {
-              lcd.setCursor(0, 0);
-              lcd.print("                ");
-              lcd.setCursor(0, 0);
-              lcd.print("Fail :(");
-            }
-            break;
           }
         }
       }
@@ -268,13 +259,17 @@ void loop() {
             lcd.print("Ket thuc!");
             break;
           case '4':
+            lcd.setCursor(0, 0);
+            lcd.print("                ");
+            lcd.setCursor(0, 0);
+            lcd.print("Quet the gui!");
             timeCheckCard = millis();
             while (millis() - timeCheckCard < 4000) {
               if(readCardFunc()) {
                 lcd.setCursor(0, 0);
                 lcd.print("                ");
                 lcd.setCursor(0, 0);
-                lcd.print("Sending...");
+                lcd.print("Dang gui...");
                 processCharSendSocket("R101", "M04", strID);
                 webSocket.emit("esp-send-mess", charSendSocket);
                 break;
@@ -283,7 +278,7 @@ void loop() {
             lcd.setCursor(0, 0);
             lcd.print("                ");
             lcd.setCursor(0, 0);
-            lcd.print("Terminate!");
+            lcd.print("Ket thuc!");
             break;
         }
       }

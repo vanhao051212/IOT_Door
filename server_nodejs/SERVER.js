@@ -1,5 +1,8 @@
 var db = require("./database/db");
 
+var axios = require('axios')
+var qs = require('qs')
+
 var express = require('express');
 var app = express();
 app.use(express.static("./public"));
@@ -118,12 +121,28 @@ app.post('/receivedCmd', function(req, res) {
 	    try{
 	    	if (req.body.CMD == diemDanhCmd) {
 	    		if(req.body.CardID && req.body.RoomID) {
+	    			var t = await axios({
+					  method: 'post',
+					  url: 'http://192.168.20.135:8000/testPost',
+					  data: qs.stringify({
+					    name: 'thuc',
+					  }),
+					  headers: {
+					    'content-type': 'application/x-www-form-urlencoded;charset=utf-8'
+					  }
+					});
+					if(t.data && t.status == 200) {
+						console.log(t.data);
+					}
+					return res.send("OK");
+	    			/*
 	    			var result = await db.insertDiemDanh(req.body.RoomID, req.body.CardID);
 	    			if(result) {
 	    				res.send("OK");
 	    			} else {
 	    				res.send("FAIL");
 	    			}
+	    			*/
 	    		}
 	    	} else if (req.body.CMD == baoDongCmd) {
 	    		if(req.body.RoomID) {
@@ -138,12 +157,12 @@ app.post('/receivedCmd', function(req, res) {
 			        	if(area)
 							io.sockets.in(area).emit("server-send-update-status-room", {room: roomInfo, messes: messInfo, RoomID: req.body.RoomID});
 			        }
-			        res.send("OK");
+			        return res.send("OK");
 			    } else {
-			    	res.send("FAIL");
+			    	return res.send("FAIL");
 				}
 	    	} else {
-	    		res.send("FAIL");
+	    		return res.send("FAIL");
 	    	}
 	    }
 	    catch(e){throw (e);}
@@ -172,23 +191,10 @@ app.get('/control', function(req, res, next) {
 	};
 });
 
-/*app.post('/checkRFID', function(req, res) {
-  if (req.body && req.body.ID) {
-  	checkRFID();
-	async function checkRFID() {
-	    try{
-	        var result = await db.checkRFID(req.body.ID);
-	        if (result) {
-	        	res.send("ACCEPT");
-	        } else {
-	        	res.send("DECLINE");
-	        }
-	    }
-	    catch(e){throw (e);}
-	};
-  } else {
-  	res.sendStatus(405);
+app.post('/testPost', function(req, res) {
+  if (req.body && req.body.name) {
+  	res.send("hello "+req.body.name);
   }
-});*/
+});
 
 server.listen(process.env.PORT || port);
