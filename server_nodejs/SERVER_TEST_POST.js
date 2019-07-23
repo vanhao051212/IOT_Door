@@ -3,7 +3,8 @@ var db = require("./database/db");
 var axios = require('axios')
 var qs = require('qs')
 var md5 = require('md5');
-
+const https = require('https');
+const http = require('http');
 var express = require('express');
 var app = express();
 app.use(express.static("./public"));
@@ -117,68 +118,62 @@ app.post('/receivedCmd', function(req, res) {
   var baoDongCmd = 'M05';
   //console.log(req.body);
   if (req.body) {
-  	checkCMD();
-	async function checkCMD() {
+  	if(req.body.CMD == baoDongCmd) {
+  		Alert();
+  	} else if(req.body.CMD == diemDanhCmd) {
+  		Record();
+  	} else {
+  		res.sendStatus(405);
+  	}
+  	function Record() {
+  		if(req.body.CardID && req.body.RoomID) {
+			var dataPost = {
+				type : 'new',
+				time : getDateTime(),
+				room : req.body.RoomID,
+				uid	 : req.body.CardID
+			}
+			dataPost.hash = md5(dataPost.room+dataPost.uid+dataPost.time+dataPost.type+'K_};uE7<hdJ[eE{j2rN');
+			axios.request({
+				method: 'post',
+				url: 'https://apiservice.uit.edu.vn/iot/att',
+				header: {
+					'Accept': 'application/json',
+					'content-type': 'application/json'
+				},
+				data : dataPost
+			})
+			.then(function(data) {
+				console.log(data);
+			})
+			.catch(function(error) {
+				console.error(error);
+			});
+
+			res.send("OK");
+		}
+  	}
+	async function Alert() {
 	    try{
-	    	if (req.body.CMD == diemDanhCmd) {
-	    		if(req.body.CardID && req.body.RoomID) {
-	    			/* local database */
-	    			var checkRoom = await db.checkRoomExist(req.body.RoomID);
-	    			if(checkRoom) {
-	    				await db.insertDiemDanh(req.body.RoomID, req.body.CardID);
-	    			}
-	    			/* remote database */
-	    			var dataPost = {
-						type : 'new',
-						time : getDateTime(),
-						room : req.body.RoomID,
-						uid	 : req.body.CardID
-					}
-					dataPost.hash = md5(dataPost.room+dataPost.uid+dataPost.time+dataPost.type+'K_};uE7<hdJ[eE{j2rN');
-	    			var t = await axios({
-						method: 'post',
-						url: 'https://apiservice.uit.edu.vn/iot/att',
-						header: {
-							'Accept': 'application/json',
-							'content-type': 'application/json'
-						},
-						data : dataPost
-					});
-					if(t.data && t.status == 200) {
-						if(t.data.data.uid == dataPost.uid && t.data.data.room == dataPost.room && t.data.data.time == dataPost.time && t.data.code == 1) {
-							res.send("OK");
-						} else {
-							res.send("FAIL");
-						}
-					} else {
-						res.send("FAIL");
-					}
-	    		}
-	    	} else if (req.body.CMD == baoDongCmd) {
-	    		if(req.body.RoomID) {
-		    		var checkMessExist = await db.checkMessExist(req.body.RoomID, baoDongCmd);
-			        //var checkRoomExist = await db.checkRoomExist(req.body.RoomID);
-			        //if (!checkMessExist && checkRoomExist) {
-			        if (!checkMessExist) {
-			        	await db.insertMess(req.body.RoomID, baoDongCmd, "");
-	        			var roomInfo = await db.getSpecRoomInfo(req.body.RoomID);
-	        			var messInfo = await db.getMessInfo();
-	        			var area = await db.getAreaRoomID(req.body.RoomID);
-			        	if(area)
-							io.sockets.in(area).emit("server-send-update-status-room", {room: roomInfo, messes: messInfo, RoomID: req.body.RoomID});
-			        }
-			        return res.send("OK");
-			    } else {
-			    	return res.send("FAIL");
-				}
-	    	} else {
-	    		return res.send("FAIL");
-	    	}
+    		if(req.body.RoomID) {
+	    		var checkMessExist = await db.checkMessExist(req.body.RoomID, baoDongCmd);
+		        //var checkRoomExist = await db.checkRoomExist(req.body.RoomID);
+		        //if (!checkMessExist && checkRoomExist) {
+		        if (!checkMessExist) {
+		        	await db.insertMess(req.body.RoomID, baoDongCmd, "");
+        			var roomInfo = await db.getSpecRoomInfo(req.body.RoomID);
+        			var messInfo = await db.getMessInfo();
+        			var area = await db.getAreaRoomID(req.body.RoomID);
+		        	if(area)
+						io.sockets.in(area).emit("server-send-update-status-room", {room: roomInfo, messes: messInfo, RoomID: req.body.RoomID});
+		        }
+		        return res.send("OK");
+		    } else {
+		    	return res.send("FAIL");
+			}
 	    }
 	    catch(e){throw (e);}
 	};
-  } else {
-  	res.sendStatus(405);
   }
 });
 
