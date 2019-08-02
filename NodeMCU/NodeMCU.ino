@@ -159,12 +159,12 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.print("                ");
         lcd.setCursor(0, 0);
-        lcd.print("Everything OK :)");
+        lcd.print("Thanh Cong :)");
       } else {
         lcd.setCursor(0, 0);
         lcd.print("                ");
         lcd.setCursor(0, 0);
-        lcd.print("Fail :<");
+        lcd.print("Loi Roi :<");
       }
     }
     if(Serial.available() > 0) {
