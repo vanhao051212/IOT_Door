@@ -76,6 +76,13 @@ unsigned long time_join_room;
 //thời gian reset lại
 unsigned long time_out; //time out reset
 
+//turn led
+void Turn_Led_1(uint8_t state);
+void Turn_Led_2(uint8_t state);
+
+//check request
+void Execute_Request(char CMD);
+
 //==============================================================================================
 //                                    setup
 //==============================================================================================
@@ -119,12 +126,15 @@ void setup() {
     webSocket.begin(Host_Socket, Port_Socket, "/socket.io/?transport=websocket");
     // use HTTP Basic Authorization this is optional remove if not needed
     // webSocket.setAuthorization("username", "password");
+    webSocket.emit("esp-send-join-room", "{\"RoomID\":\"R001\"}");
     time_join_room = millis();
     time_out = millis();
     
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Diem danh SS!");
+    Turn_Led_1(HIGH);
+    Turn_Led_2(LOW);
 }
 
 //==============================================================================================
@@ -132,7 +142,7 @@ void setup() {
 //==============================================================================================
 
 void loop() {
-    if (millis() - time_out > 300000){
+    if (millis() - time_out > 600000){
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Reset tu dong");
@@ -140,14 +150,14 @@ void loop() {
     }
     if (!joinedRoom && (millis()-time_join_room>5000)) { //neu chua join room in server
       time_join_room = millis();
-      webSocket.emit("esp-send-join-room", "{\"RoomID\":\"R101\"}");
+      webSocket.emit("esp-send-join-room", "{\"RoomID\":\"R001\"}");
     }
     
     if (!printedReady && joinedRoom) {
       printedReady = true;
       lcd.clear();
       lcd.setCursor(0, 0);
-      lcd.print("San sang dung!");
+      lcd.print("Menu SS!");
     }
 
     if (readCardFunc()) {
@@ -155,132 +165,45 @@ void loop() {
       lcd.print("                ");
       lcd.setCursor(0, 0);
       lcd.print("  Da nhan the");
+      Turn_Led_1(LOW);
+      Turn_Led_2(LOW);
       if(sendNotice(strID, "M06")) {
         lcd.setCursor(0, 0);
         lcd.print("                ");
         lcd.setCursor(0, 0);
         lcd.print("Thanh Cong :)");
+        delay(500);
+        Turn_Led_1(HIGH);
+        Turn_Led_2(LOW);
+        delay(500);
+        Turn_Led_1(LOW);
+        Turn_Led_2(LOW);
+        delay(500);
+        Turn_Led_1(HIGH);
+        Turn_Led_2(LOW);
       } else {
         lcd.setCursor(0, 0);
         lcd.print("                ");
         lcd.setCursor(0, 0);
         lcd.print("Loi Roi :<");
+        delay(500);
+        Turn_Led_1(LOW);
+        Turn_Led_2(HIGH);
+        delay(500);
+        Turn_Led_1(LOW);
+        Turn_Led_2(LOW);
+        delay(500);
+        Turn_Led_1(LOW);
+        Turn_Led_2(HIGH);
+        delay(500);
+        Turn_Led_1(HIGH);
+        Turn_Led_2(LOW);
       }
     }
     if(Serial.available() > 0) {
-      unsigned long timeCheckCard = millis();
       char val = Serial.read();
-      if(val == '5') {
-        webSocket.emit("esp-send-mess", "{\"RoomID\":\"R101\",\"MessID\":\"M05\"}");
-        if(sendNotice("", "M05")) {
-          lcd.setCursor(0, 0);
-          lcd.print("                ");
-          lcd.setCursor(0, 0);
-          lcd.print("Thanh cong!");
-        } else {
-          lcd.setCursor(0, 0);
-          lcd.print("                ");
-          lcd.setCursor(0, 0);
-          lcd.print("That bai thu lai");
-          if(sendNotice("", "M05")) {
-            lcd.setCursor(0, 0);
-            lcd.print("                ");
-            lcd.setCursor(0, 0);
-            lcd.print("Thanh cong!");
-          }
-        }
-      }
-      if (joinedRoom) { // neu uart den + xac thuc + da join room
-        switch(val) {
-          case '1':
-            lcd.setCursor(0, 0);
-            lcd.print("                ");
-            lcd.setCursor(0, 0);
-            lcd.print("Quet the gui!");
-            timeCheckCard = millis();
-            while (millis() - timeCheckCard < 4000) {
-              if(readCardFunc()) {
-                lcd.setCursor(0, 0);
-                lcd.print("                ");
-                lcd.setCursor(0, 0);
-                lcd.print("Dang gui...");
-                processCharSendSocket("R101", "M01", strID);
-                webSocket.emit("esp-send-mess", charSendSocket);
-                break;
-              }
-            } 
-            lcd.setCursor(0, 0);
-            lcd.print("                ");
-            lcd.setCursor(0, 0);
-            lcd.print("Ket thuc!");
-            break;
-          case '2':
-            lcd.setCursor(0, 0);
-            lcd.print("                ");
-            lcd.setCursor(0, 0);
-            lcd.print("Quet the gui!");
-            timeCheckCard = millis();
-            while (millis() - timeCheckCard < 4000) {
-              if(readCardFunc()) {
-                lcd.setCursor(0, 0);
-                lcd.print("                ");
-                lcd.setCursor(0, 0);
-                lcd.print("Dang gui...");
-                processCharSendSocket("R101", "M02", strID);
-                webSocket.emit("esp-send-mess", charSendSocket);
-                break;
-              }
-            }
-            lcd.setCursor(0, 0);
-            lcd.print("                ");
-            lcd.setCursor(0, 0);
-            lcd.print("Ket thuc!");
-            break;
-          case '3':
-            lcd.setCursor(0, 0);
-            lcd.print("                ");
-            lcd.setCursor(0, 0);
-            lcd.print("Quet the gui!");
-            timeCheckCard = millis();
-            while (millis() - timeCheckCard < 4000) {
-              if(readCardFunc()) {
-                lcd.setCursor(0, 0);
-                lcd.print("                ");
-                lcd.setCursor(0, 0);
-                lcd.print("Dang gui...");
-                processCharSendSocket("R101", "M03", strID);
-                webSocket.emit("esp-send-mess", charSendSocket);
-                break;
-              }
-            }
-            lcd.setCursor(0, 0);
-            lcd.print("                ");
-            lcd.setCursor(0, 0);
-            lcd.print("Ket thuc!");
-            break;
-          case '4':
-            lcd.setCursor(0, 0);
-            lcd.print("                ");
-            lcd.setCursor(0, 0);
-            lcd.print("Quet the gui!");
-            timeCheckCard = millis();
-            while (millis() - timeCheckCard < 4000) {
-              if(readCardFunc()) {
-                lcd.setCursor(0, 0);
-                lcd.print("                ");
-                lcd.setCursor(0, 0);
-                lcd.print("Dang gui...");
-                processCharSendSocket("R101", "M04", strID);
-                webSocket.emit("esp-send-mess", charSendSocket);
-                break;
-              }
-            }
-            lcd.setCursor(0, 0);
-            lcd.print("                ");
-            lcd.setCursor(0, 0);
-            lcd.print("Ket thuc!");
-            break;
-        }
+      if(val == '1' || val == '2' || val == '3' || val == '4' || val == '5') {
+        Execute_Request(val);
       }
     }
     if(!webSocket.StatusConnectSocket) {
@@ -309,7 +232,7 @@ void convertStringToChar(String str) {
 void processCharSendSocket(String RoomID, String Mess, String CardID) {
   DynamicJsonBuffer jsonBuffer;
 
-  String stringJson = "{\"RoomID\":\"R101\",\"MessID\":\"M01\",\"CardID\":\"ABCDABCD\"}";
+  String stringJson = "{\"RoomID\":\"R001\",\"MessID\":\"M01\",\"CardID\":\"ABCDABCD\"}";
   JsonObject& root = jsonBuffer.parseObject(stringJson);
 
   root["RoomID"] = RoomID;
@@ -324,7 +247,7 @@ bool sendNotice(String CardID, String command){
   HTTPClient http;
   http.begin(Send_Cmd);
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-  int httpCode=http.POST(String("RoomID=R101&") + String("CardID=")+ CardID + '&' + String("CMD=") + command); 
+  int httpCode=http.POST(String("RoomID=R001&") + String("CardID=")+ CardID + '&' + String("CMD=") + command); 
   String payload=http.getString();
   http.end();   
   // if successful
@@ -367,7 +290,7 @@ void ackMess(const char * payload, size_t length) {
   lcd.setCursor(0, 0);
   lcd.print("                ");
   lcd.setCursor(0, 0);
-  lcd.print("San sang dung!");
+  lcd.print("Menu SS!");
 }
 
 void dump_byte_array(byte *buffer, byte bufferSize) {
@@ -397,4 +320,175 @@ bool readCardFunc(void) {
   // Show some details of the PICC (that is: the tag/card)
   dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
   return true;
+}
+void Turn_Led_1(uint8_t state) {
+  if(state == HIGH) {
+    Serial.write("^1");
+  } else {
+    Serial.write("^0");
+  }
+}
+void Turn_Led_2(uint8_t state) {
+  if(state == HIGH) {
+    Serial.write("^3");
+  } else {
+    Serial.write("^2");
+  }
+}
+void Execute_Request(char CMD) {
+  unsigned long timeCheckCard = millis();
+  if(CMD == '5') {
+    webSocket.emit("esp-send-mess", "{\"RoomID\":\"R001\",\"MessID\":\"M05\"}");
+    if(!sendNotice("", "M05")) {
+      sendNotice("", "M05");
+    }
+  }
+  if (joinedRoom) { // neu uart den + xac thuc + da join room
+    switch(CMD) {
+      case '1':
+        lcd.setCursor(0, 0);
+        lcd.print("                ");
+        lcd.setCursor(0, 0);
+        lcd.print("Remote");
+        timeCheckCard = millis();
+        lcd.setCursor(0, 1);
+        lcd.print("                ");
+        lcd.setCursor(0, 1);
+        lcd.print("Quet the gui");
+        while (millis() - timeCheckCard < 4000) {
+          if(Serial.available()>0) {
+            char receiveChar = Serial.read();
+            if(receiveChar == '1' || receiveChar == '2' || receiveChar == '3' || receiveChar == '4' || receiveChar == '5') {
+              Execute_Request(receiveChar);
+              return;
+            }
+          }
+          if(readCardFunc()) {
+            lcd.setCursor(0, 0);
+            lcd.print("                ");
+            lcd.setCursor(0, 0);
+            lcd.print("Dang gui...");
+            processCharSendSocket("R001", "M01", strID);
+            webSocket.emit("esp-send-mess", charSendSocket);
+            break;
+          }
+        }
+        lcd.setCursor(0, 1);
+        lcd.print("                ");
+        lcd.setCursor(0, 1);
+        lcd.setCursor(0, 0);
+        lcd.print("                ");
+        lcd.setCursor(0, 0);
+        lcd.print("Ket thuc!");
+        break;
+      case '2':
+        lcd.setCursor(0, 0);
+        lcd.print("                ");
+        lcd.setCursor(0, 0);
+        lcd.print("Micro");
+        timeCheckCard = millis();
+        lcd.setCursor(0, 1);
+        lcd.print("                ");
+        lcd.setCursor(0, 1);
+        lcd.print("Quet the gui");
+        while (millis() - timeCheckCard < 4000) {
+          if(Serial.available()>0) {
+            char receiveChar = Serial.read();
+            if(receiveChar == '1' || receiveChar == '2' || receiveChar == '3' || receiveChar == '4' || receiveChar == '5') {
+              Execute_Request(receiveChar);
+              return;
+            }
+          }
+          if(readCardFunc()) {
+            lcd.setCursor(0, 0);
+            lcd.print("                ");
+            lcd.setCursor(0, 0);
+            lcd.print("Dang gui...");
+            processCharSendSocket("R001", "M02", strID);
+            webSocket.emit("esp-send-mess", charSendSocket);
+            break;
+          }
+        }
+        lcd.setCursor(0, 1);
+        lcd.print("                ");
+        lcd.setCursor(0, 1);
+        lcd.setCursor(0, 0);
+        lcd.print("                ");
+        lcd.setCursor(0, 0);
+        lcd.print("Ket thuc!");
+        break;
+      case '3':
+        lcd.setCursor(0, 0);
+        lcd.print("                ");
+        lcd.setCursor(0, 0);
+        lcd.print("HDMI");
+        timeCheckCard = millis();
+        lcd.setCursor(0, 1);
+        lcd.print("                ");
+        lcd.setCursor(0, 1);
+        lcd.print("Quet the gui");
+        while (millis() - timeCheckCard < 4000) {
+          if(Serial.available()>0) {
+            char receiveChar = Serial.read();
+            if(receiveChar == '1' || receiveChar == '2' || receiveChar == '3' || receiveChar == '4' || receiveChar == '5') {
+              Execute_Request(receiveChar);
+              return;
+            }
+          }
+          if(readCardFunc()) {
+            lcd.setCursor(0, 0);
+            lcd.print("                ");
+            lcd.setCursor(0, 0);
+            lcd.print("Dang gui...");
+            processCharSendSocket("R001", "M03", strID);
+            webSocket.emit("esp-send-mess", charSendSocket);
+            break;
+          }
+        }
+        lcd.setCursor(0, 1);
+        lcd.print("                ");
+        lcd.setCursor(0, 1);
+        lcd.setCursor(0, 0);
+        lcd.print("                ");
+        lcd.setCursor(0, 0);
+        lcd.print("Ket thuc!");
+        break;
+      case '4':
+        lcd.setCursor(0, 0);
+        lcd.print("                ");
+        lcd.setCursor(0, 0);
+        lcd.print("Truc trac KT");
+        timeCheckCard = millis();
+        lcd.setCursor(0, 1);
+        lcd.print("                ");
+        lcd.setCursor(0, 1);
+        lcd.print("Quet the gui");
+        while (millis() - timeCheckCard < 4000) {
+          if(Serial.available()>0) {
+            char receiveChar = Serial.read();
+            if(receiveChar == '1' || receiveChar == '2' || receiveChar == '3' || receiveChar == '4' || receiveChar == '5') {
+              Execute_Request(receiveChar);
+              return;
+            }
+          }
+          if(readCardFunc()) {
+            lcd.setCursor(0, 0);
+            lcd.print("                ");
+            lcd.setCursor(0, 0);
+            lcd.print("Dang gui...");
+            processCharSendSocket("R001", "M04", strID);
+            webSocket.emit("esp-send-mess", charSendSocket);
+            break;
+          }
+        }
+        lcd.setCursor(0, 1);
+        lcd.print("                ");
+        lcd.setCursor(0, 1);
+        lcd.setCursor(0, 0);
+        lcd.print("                ");
+        lcd.setCursor(0, 0);
+        lcd.print("Ket thuc!");
+        break;
+    }
+  }
 }
