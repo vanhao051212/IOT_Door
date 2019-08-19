@@ -23,6 +23,8 @@ void INIT();
 void Send_uart(char value);
 void Check_button();
 void Check_projector();
+void Turn_Led(uint8_t led, uint8_t state);
+void Check_Led();
 
 bool firstSend = true;
 
@@ -38,12 +40,13 @@ void loop()
   Check_projector();
   
   if(falt_projector) {
-    if(millis() - timeSendInterval > 5000) {
+    if(millis() - timeSendInterval > 60000) {
       timeSendInterval=millis();
       Send_uart('5');
       Serial.println("Alert");
     }
   }
+  Check_Led();
 }
 
 /*======================================================================================================*/
@@ -106,14 +109,14 @@ void Check_button()
   {
     delay(50);
     if(!digitalRead(Status_4)) {
-      Send_uart('6');
+      Send_uart('4');
       delay(2000);
     }
   }
 }
 void Check_projector() {
   if (digitalRead(G1) || !digitalRead(G2)) {
-    delay(1000);
+    delay(5);
     if (digitalRead(G1) || !digitalRead(G2)) {
       falt_projector = true;
     }
@@ -127,5 +130,31 @@ void Check_projector() {
     Serial.println("Alert");
     Send_uart('5');
     timeSendInterval=millis();
+  }
+}
+void Turn_Led(uint8_t led, uint8_t state) {
+  digitalWrite(led, !state);
+}
+void Check_Led() {
+  if(ss.available()>0) {
+    char val = ss.read();
+    if(val=='^') {
+      while(ss.available()<=0) {};
+      val = ss.read();
+      switch(val) {
+        case '0':
+          Turn_Led(Led_1, LOW);
+          break;
+        case '1':
+          Turn_Led(Led_1, HIGH);
+          break;
+        case '2':
+          Turn_Led(Led_2, LOW);
+          break;
+        case '3':
+          Turn_Led(Led_2, HIGH);
+          break;
+      }
+    }
   }
 }
