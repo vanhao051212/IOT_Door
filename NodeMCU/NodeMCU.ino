@@ -73,8 +73,10 @@ bool printedReady = false;
 //thời gian để gửi event yêu cầu join room lên server
 unsigned long time_join_room;
 
+#ifdef AUTO_RESET
 //thời gian reset lại
 unsigned long time_out; //time out reset
+#endif
 
 //turn led
 void Turn_Led_1(uint8_t state);
@@ -128,8 +130,9 @@ void setup() {
     // webSocket.setAuthorization("username", "password");
     webSocket.emit("esp-send-join-room", "{\"RoomID\":\"R001\"}");
     time_join_room = millis();
+    #ifdef AUTO_RESET
     time_out = millis();
-    
+    #endif
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Diem danh SS!");
@@ -142,12 +145,14 @@ void setup() {
 //==============================================================================================
 
 void loop() {
+    #ifdef AUTO_RESET
     if (millis() - time_out > 600000){
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Reset tu dong");
       ESP.restart();
     }
+    #endif
     if (!joinedRoom && (millis()-time_join_room>5000)) { //neu chua join room in server
       time_join_room = millis();
       webSocket.emit("esp-send-join-room", "{\"RoomID\":\"R001\"}");
@@ -157,7 +162,7 @@ void loop() {
       printedReady = true;
       lcd.clear();
       lcd.setCursor(0, 0);
-      lcd.print("Menu SS!");
+      lcd.print("DD + Menu SS!");
     }
 
     if (readCardFunc()) {
@@ -171,7 +176,7 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.print("                ");
         lcd.setCursor(0, 0);
-        lcd.print("Thanh Cong :)");
+        lcd.print("DD Thanh Cong :)");
         delay(500);
         Turn_Led_1(HIGH);
         Turn_Led_2(LOW);
@@ -185,7 +190,7 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.print("                ");
         lcd.setCursor(0, 0);
-        lcd.print("Loi Roi :<");
+        lcd.print("DD Loi :<");
         delay(500);
         Turn_Led_1(LOW);
         Turn_Led_2(HIGH);
@@ -199,11 +204,13 @@ void loop() {
         Turn_Led_1(HIGH);
         Turn_Led_2(LOW);
       }
+      printedReady=false;
     }
     if(Serial.available() > 0) {
       char val = Serial.read();
       if(val == '1' || val == '2' || val == '3' || val == '4' || val == '5') {
         Execute_Request(val);
+        printedReady=false;
       }
     }
     if(!webSocket.StatusConnectSocket) {
@@ -285,12 +292,9 @@ void ackMess(const char * payload, size_t length) {
   lcd.setCursor(0, 0);
   lcd.print("                ");
   lcd.setCursor(0, 0);
-  lcd.print("Gui thanh cong");
+  lcd.print("Yc thanh cong");
   delay(1500);
-  lcd.setCursor(0, 0);
-  lcd.print("                ");
-  lcd.setCursor(0, 0);
-  lcd.print("Menu SS!");
+  printedReady=false;
 }
 
 void dump_byte_array(byte *buffer, byte bufferSize) {
@@ -380,6 +384,7 @@ void Execute_Request(char CMD) {
         lcd.print("                ");
         lcd.setCursor(0, 0);
         lcd.print("Ket thuc!");
+        delay(1000);
         break;
       case '2':
         lcd.setCursor(0, 0);
@@ -416,6 +421,7 @@ void Execute_Request(char CMD) {
         lcd.print("                ");
         lcd.setCursor(0, 0);
         lcd.print("Ket thuc!");
+        delay(1000);
         break;
       case '3':
         lcd.setCursor(0, 0);
@@ -452,6 +458,7 @@ void Execute_Request(char CMD) {
         lcd.print("                ");
         lcd.setCursor(0, 0);
         lcd.print("Ket thuc!");
+        delay(1000);
         break;
       case '4':
         lcd.setCursor(0, 0);
@@ -488,6 +495,7 @@ void Execute_Request(char CMD) {
         lcd.print("                ");
         lcd.setCursor(0, 0);
         lcd.print("Ket thuc!");
+        delay(1000);
         break;
     }
   }
