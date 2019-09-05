@@ -5,6 +5,8 @@
 #include <LiquidCrystal_I2C.h>
 #include <ArduinoJson.h>
 
+#define AUTO_RESET
+
 #include <MFRC522.h>
 #define RST_PIN 15 // RST-PIN for RC522 - RFID - SPI - Modul GPIO15 
 #define SS_PIN  2  // SDA-PIN for RC522 - RFID - SPI - Modul GPIO2
@@ -107,6 +109,10 @@ void setup() {
     Serial.println();
     Serial.println();
     Serial.println();
+
+    #ifdef AUTO_RESET
+    time_out = millis();
+    #endif
     
     WiFi.mode(WIFI_STA);
 
@@ -114,6 +120,14 @@ void setup() {
 
     while (WiFi.status() != WL_CONNECTED)
     {
+      #ifdef AUTO_RESET
+      if (millis() - time_out > 30000){
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Reset tu dong");
+        ESP.restart();
+      }
+      #endif
       delay(500);
       Serial.print(".");
     }
@@ -128,7 +142,7 @@ void setup() {
     webSocket.begin(Host_Socket, Port_Socket, "/socket.io/?transport=websocket");
     // use HTTP Basic Authorization this is optional remove if not needed
     // webSocket.setAuthorization("username", "password");
-    webSocket.emit("esp-send-join-room", "{\"RoomID\":\"R001\"}");
+    webSocket.emit("esp-send-join-room", "{\"RoomID\":\"R004\"}");
     time_join_room = millis();
     #ifdef AUTO_RESET
     time_out = millis();
@@ -155,7 +169,7 @@ void loop() {
     #endif
     if (!joinedRoom && (millis()-time_join_room>5000)) { //neu chua join room in server
       time_join_room = millis();
-      webSocket.emit("esp-send-join-room", "{\"RoomID\":\"R001\"}");
+      webSocket.emit("esp-send-join-room", "{\"RoomID\":\"R004\"}");
     }
     
     if (!printedReady && joinedRoom) {
@@ -239,7 +253,7 @@ void convertStringToChar(String str) {
 void processCharSendSocket(String RoomID, String Mess, String CardID) {
   DynamicJsonBuffer jsonBuffer;
 
-  String stringJson = "{\"RoomID\":\"R001\",\"MessID\":\"M01\",\"CardID\":\"ABCDABCD\"}";
+  String stringJson = "{\"RoomID\":\"R004\",\"MessID\":\"M01\",\"CardID\":\"ABCDABCD\"}";
   JsonObject& root = jsonBuffer.parseObject(stringJson);
 
   root["RoomID"] = RoomID;
@@ -254,7 +268,7 @@ bool sendNotice(String CardID, String command){
   HTTPClient http;
   http.begin(Send_Cmd);
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-  int httpCode=http.POST(String("RoomID=R001&") + String("CardID=")+ CardID + '&' + String("CMD=") + command); 
+  int httpCode=http.POST(String("RoomID=R004&") + String("CardID=")+ CardID + '&' + String("CMD=") + command); 
   String payload=http.getString();
   http.end();   
   // if successful
@@ -342,7 +356,7 @@ void Turn_Led_2(uint8_t state) {
 void Execute_Request(char CMD) {
   unsigned long timeCheckCard = millis();
   if(CMD == '5') {
-    webSocket.emit("esp-send-mess", "{\"RoomID\":\"R001\",\"MessID\":\"M05\"}");
+    webSocket.emit("esp-send-mess", "{\"RoomID\":\"R004\",\"MessID\":\"M05\"}");
     if(!sendNotice("", "M05")) {
       sendNotice("", "M05");
     }
@@ -372,7 +386,7 @@ void Execute_Request(char CMD) {
             lcd.print("                ");
             lcd.setCursor(0, 0);
             lcd.print("Dang gui...");
-            processCharSendSocket("R001", "M01", strID);
+            processCharSendSocket("R004", "M01", strID);
             webSocket.emit("esp-send-mess", charSendSocket);
             break;
           }
@@ -409,7 +423,7 @@ void Execute_Request(char CMD) {
             lcd.print("                ");
             lcd.setCursor(0, 0);
             lcd.print("Dang gui...");
-            processCharSendSocket("R001", "M02", strID);
+            processCharSendSocket("R004", "M02", strID);
             webSocket.emit("esp-send-mess", charSendSocket);
             break;
           }
@@ -446,7 +460,7 @@ void Execute_Request(char CMD) {
             lcd.print("                ");
             lcd.setCursor(0, 0);
             lcd.print("Dang gui...");
-            processCharSendSocket("R001", "M03", strID);
+            processCharSendSocket("R004", "M03", strID);
             webSocket.emit("esp-send-mess", charSendSocket);
             break;
           }
@@ -483,7 +497,7 @@ void Execute_Request(char CMD) {
             lcd.print("                ");
             lcd.setCursor(0, 0);
             lcd.print("Dang gui...");
-            processCharSendSocket("R001", "M04", strID);
+            processCharSendSocket("R004", "M04", strID);
             webSocket.emit("esp-send-mess", charSendSocket);
             break;
           }

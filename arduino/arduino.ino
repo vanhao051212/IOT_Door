@@ -17,7 +17,7 @@ bool falt_projector = false;
 
 unsigned long timeSendInterval;
 
-void(* resetFunc) (void) = 0;// reset function
+unsigned long timeOut;
 
 void INIT();
 void Send_uart(char value);
@@ -28,10 +28,13 @@ void Check_Led();
 
 bool firstSend = true;
 
+void(* resetFunc) (void) = 0;
+
 void setup()
 {
   INIT();
   timeSendInterval=millis();
+  timeOut=millis();
 }
 void loop()
 {
@@ -40,6 +43,7 @@ void loop()
   Check_projector();
   
   if(falt_projector) {
+    timeOut=millis();
     if(millis() - timeSendInterval > 60000) {
       timeSendInterval=millis();
       Send_uart('5');
@@ -47,6 +51,9 @@ void loop()
     }
   }
   Check_Led();
+  if(millis()-timeOut > 300000) {
+    resetFunc();
+  }
 }
 
 /*======================================================================================================*/
