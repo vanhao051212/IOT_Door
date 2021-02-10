@@ -80,9 +80,6 @@ unsigned long time_join_room;
 unsigned long time_out; //time out reset
 #endif
 
-//turn led
-void Turn_Led_1(uint8_t state);
-void Turn_Led_2(uint8_t state);
 
 //check request
 void Execute_Request(char CMD);
@@ -142,7 +139,7 @@ void setup() {
     webSocket.begin(Host_Socket, Port_Socket, "/socket.io/?transport=websocket");
     // use HTTP Basic Authorization this is optional remove if not needed
     // webSocket.setAuthorization("username", "password");
-    webSocket.emit("esp-send-join-room", "{\"RoomID\":\"R004\"}");
+    webSocket.emit("esp-send-join-room", "{\"RoomID\":\"R005\"}");
     time_join_room = millis();
     #ifdef AUTO_RESET
     time_out = millis();
@@ -150,8 +147,6 @@ void setup() {
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Diem danh SS!");
-    Turn_Led_1(HIGH);
-    Turn_Led_2(LOW);
 }
 
 //==============================================================================================
@@ -169,7 +164,7 @@ void loop() {
     #endif
     if (!joinedRoom && (millis()-time_join_room>5000)) { //neu chua join room in server
       time_join_room = millis();
-      webSocket.emit("esp-send-join-room", "{\"RoomID\":\"R004\"}");
+      webSocket.emit("esp-send-join-room", "{\"RoomID\":\"R005\"}");
     }
     
     if (!printedReady && joinedRoom) {
@@ -184,39 +179,18 @@ void loop() {
       lcd.print("                ");
       lcd.setCursor(0, 0);
       lcd.print("  Da nhan the");
-      Turn_Led_1(LOW);
-      Turn_Led_2(LOW);
-      if(sendNotice(strID, "M06")) {
+      if(sendNotice(strID, "M05")) {
         lcd.setCursor(0, 0);
         lcd.print("                ");
         lcd.setCursor(0, 0);
         lcd.print("DD Thanh Cong :)");
-        delay(500);
-        Turn_Led_1(HIGH);
-        Turn_Led_2(LOW);
-        delay(500);
-        Turn_Led_1(LOW);
-        Turn_Led_2(LOW);
-        delay(500);
-        Turn_Led_1(HIGH);
-        Turn_Led_2(LOW);
+        delay(1500);
       } else {
         lcd.setCursor(0, 0);
         lcd.print("                ");
         lcd.setCursor(0, 0);
         lcd.print("DD Loi :<");
-        delay(500);
-        Turn_Led_1(LOW);
-        Turn_Led_2(HIGH);
-        delay(500);
-        Turn_Led_1(LOW);
-        Turn_Led_2(LOW);
-        delay(500);
-        Turn_Led_1(LOW);
-        Turn_Led_2(HIGH);
-        delay(500);
-        Turn_Led_1(HIGH);
-        Turn_Led_2(LOW);
+        delay(1500);
       }
       printedReady=false;
     }
@@ -227,14 +201,14 @@ void loop() {
         printedReady=false;
       }
     }
-    if(!webSocket.StatusConnectSocket) {
-      webSocket.disconnect();
-      delay(500);
-      joinedRoom=false;
-      webSocket.begin(Host_Socket, Port_Socket, "/socket.io/?transport=websocket");
-      webSocket.StatusConnectSocket=true;
-      delay(500);
-    }
+//    if(!webSocket.StatusConnectSocket) {
+//      webSocket.disconnect();
+//      delay(500);
+//      joinedRoom=false;
+//      webSocket.begin(Host_Socket, Port_Socket, "/socket.io/?transport=websocket");
+//      webSocket.StatusConnectSocket=true;
+//      delay(500);
+//    }
     webSocket.loop();
 }
 
@@ -253,7 +227,7 @@ void convertStringToChar(String str) {
 void processCharSendSocket(String RoomID, String Mess, String CardID) {
   DynamicJsonBuffer jsonBuffer;
 
-  String stringJson = "{\"RoomID\":\"R004\",\"MessID\":\"M01\",\"CardID\":\"ABCDABCD\"}";
+  String stringJson = "{\"RoomID\":\"R005\",\"MessID\":\"M01\",\"CardID\":\"ABCDABCD\"}";
   JsonObject& root = jsonBuffer.parseObject(stringJson);
 
   root["RoomID"] = RoomID;
@@ -268,7 +242,7 @@ bool sendNotice(String CardID, String command){
   HTTPClient http;
   http.begin(Send_Cmd);
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-  int httpCode=http.POST(String("RoomID=R004&") + String("CardID=")+ CardID + '&' + String("CMD=") + command); 
+  int httpCode=http.POST(String("RoomID=R005&") + String("CardID=")+ CardID + '&' + String("CMD=") + command); 
   String payload=http.getString();
   http.end();   
   // if successful
@@ -339,24 +313,10 @@ bool readCardFunc(void) {
   dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
   return true;
 }
-void Turn_Led_1(uint8_t state) {
-  if(state == HIGH) {
-    Serial.write("^1");
-  } else {
-    Serial.write("^0");
-  }
-}
-void Turn_Led_2(uint8_t state) {
-  if(state == HIGH) {
-    Serial.write("^3");
-  } else {
-    Serial.write("^2");
-  }
-}
 void Execute_Request(char CMD) {
   unsigned long timeCheckCard = millis();
   if(CMD == '5') {
-    webSocket.emit("esp-send-mess", "{\"RoomID\":\"R004\",\"MessID\":\"M05\"}");
+    webSocket.emit("esp-send-mess", "{\"RoomID\":\"R005\",\"MessID\":\"M05\"}");
     if(!sendNotice("", "M05")) {
       sendNotice("", "M05");
     }
@@ -386,7 +346,7 @@ void Execute_Request(char CMD) {
             lcd.print("                ");
             lcd.setCursor(0, 0);
             lcd.print("Dang gui...");
-            processCharSendSocket("R004", "M01", strID);
+            processCharSendSocket("R005", "M01", strID);
             webSocket.emit("esp-send-mess", charSendSocket);
             break;
           }
@@ -423,7 +383,7 @@ void Execute_Request(char CMD) {
             lcd.print("                ");
             lcd.setCursor(0, 0);
             lcd.print("Dang gui...");
-            processCharSendSocket("R004", "M02", strID);
+            processCharSendSocket("R005", "M02", strID);
             webSocket.emit("esp-send-mess", charSendSocket);
             break;
           }
@@ -460,7 +420,7 @@ void Execute_Request(char CMD) {
             lcd.print("                ");
             lcd.setCursor(0, 0);
             lcd.print("Dang gui...");
-            processCharSendSocket("R004", "M03", strID);
+            processCharSendSocket("R005", "M03", strID);
             webSocket.emit("esp-send-mess", charSendSocket);
             break;
           }
@@ -497,7 +457,7 @@ void Execute_Request(char CMD) {
             lcd.print("                ");
             lcd.setCursor(0, 0);
             lcd.print("Dang gui...");
-            processCharSendSocket("R004", "M04", strID);
+            processCharSendSocket("R005", "M04", strID);
             webSocket.emit("esp-send-mess", charSendSocket);
             break;
           }
