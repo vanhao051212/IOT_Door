@@ -36,28 +36,31 @@ String EthernetClientClass::GetDataFromServer(char* host, int port) {
 };
 
 String EthernetClientClass::PostDataFromArduino(char* host, int port, String data) {
-  client.println("POST /receivedCmd HTTP/1.1");
-  client.println("Host: ");
-  client.print(host);
-  client.print(":");
-  client.println(port);
-  client.println("Content-Type: application/x-www-form-urlencoded");
-  client.println("Connection: close");
-  client.print("Content-Length: ");
-  client.println(data.length());
-  client.println();
-  client.println(data);
-  client.flush();
+  if (client.connect(host, port)) {
+    client.println("POST /receivedCmd HTTP/1.1");
+    client.println("Host: ");
+    client.print(host);
+    client.print(":");
+    client.println(port);
+    client.println("Content-Type: application/x-www-form-urlencoded");
+    client.println("Connection: close");
+    client.print("Content-Length: ");
+    client.println(data.length());
+    client.println();
+    client.println(data);
+    client.flush();
 
-  String payload = "";
-  // ham skipHeader va readClientLine: lay do dai cua chuoi gui ve - bo qua chuoi header
-  skipHeader(client);
-  while (client.connected())
-  {
-    char* response = readClientLine(client);
-    payload = response;
+    String payload = "";
+    // ham skipHeader va readClientLine: lay do dai cua chuoi gui ve - bo qua chuoi header
+    skipHeader(client);
+    while (client.connected())
+    {
+      char* response = readClientLine(client);
+      payload = response;
+    }
+    return payload;
   }
-  return payload;
+  return "";
 };
 
 bool EthernetClientClass::Connected() {
@@ -67,7 +70,7 @@ void EthernetClientClass::Disconnect() {
   client.stop();
 };
 
-void EthernetClientClass::skipHeader(EthernetClient &client1)
+void EthernetClientClass::skipHeader(EthernetClient & client1)
 {
   boolean currentLineIsEmpty = true;
   while (client1.connected())
@@ -82,7 +85,7 @@ void EthernetClientClass::skipHeader(EthernetClient &client1)
   }
 }
 
-char* EthernetClientClass::readClientLine(EthernetClient &client1)
+char* EthernetClientClass::readClientLine(EthernetClient & client1)
 {
   int charcount = 0;
   memset(linebuf, 0, sizeof(linebuf));
