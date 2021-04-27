@@ -3,6 +3,8 @@
 #include <SoftwareSerial.h>
 #include <LiquidCrystal_I2C.h>
 
+#define BUZZER_PIN A0
+
 #define RST_PIN_MFRC 9 // RST-PIN for RC522
 #define SS_PIN_MFRC  10  // SDA-PIN for RC522
 MFRC522 mfrc522(SS_PIN_MFRC, RST_PIN_MFRC);   // Create MFRC522 instance
@@ -13,6 +15,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 void dump_byte_array(byte *buffer, byte bufferSize);
 bool readCardFunc(void);
 void(* resetFunc) (void) = 0; //cài đặt hàm reset
+void Toggle_Buzzer();
 
 String strID = "";
 String httpRequestStatus = "";
@@ -23,6 +26,7 @@ void setup() {
   SPI.begin();           // Init SPI bus
   Serial.begin(9600);
   software_serial.begin(9600);
+  pinMode(BUZZER_PIN, OUTPUT);
   mfrc522.PCD_Init();    // Init MFRC522
 
   lcd.init();
@@ -30,6 +34,7 @@ void setup() {
   lcd.clear();
   lcd.setCursor(1, 0);
   lcd.print("Dang khoi dong");
+  Toggle_Buzzer();
   while (!software_serial.available()) {
     delay(1);
   };
@@ -46,6 +51,7 @@ void setup() {
     lcd.setCursor(2, 1);
     lcd.print("Moi quet the");
   }
+  Toggle_Buzzer();
 }
 
 void loop() {
@@ -63,7 +69,7 @@ void loop() {
 
   while (requesting && millis() - beginTimeRequest < 5000) {
     if (millis() - beginTimeRequest > 4500) {
-      dislay_LCD(404);
+      Dislay_LCD(404);
       requesting = false;
     } else {
       lcd.setCursor(1, 0);
@@ -84,15 +90,15 @@ void loop() {
       Serial.println(httpRequestStatus);
 
       if (httpRequestStatus == "OK") {
-        dislay_LCD(200);
+        Dislay_LCD(200);
         Serial.println(F("Request Okay"));
         httpRequestStatus = "";
       } else if (httpRequestStatus == "FAIL") {
-        dislay_LCD(502);
+        Dislay_LCD(502);
         Serial.println(F("Request Fail"));
         httpRequestStatus = "";
       } else {
-        dislay_LCD(404);
+        Dislay_LCD(404);
         Serial.println(F("Page Not Found"));
         httpRequestStatus = "";
       }
@@ -140,34 +146,44 @@ bool readCardFunc(void) {
   return true;
 }
 
-void dislay_LCD(int CMD) {
+void Dislay_LCD(int CMD) {
   lcd.clear();
 
   if (CMD == 200) {
     lcd.setCursor(1, 0);
     lcd.print("DD thanh cong");
-    delay(2000);
+    Toggle_Buzzer();
+    delay(1000);
   } else if (CMD == 502) {
     lcd.setCursor(2, 0);
     lcd.print("DD that bai");
     lcd.setCursor(0, 1);
     lcd.print("Vui long thu lai");
+    digitalWrite(BUZZER_PIN, HIGH);   
     delay(2000);
+    digitalWrite(BUZZER_PIN, LOW);
   } else if (CMD == 404) {
     lcd.setCursor(2, 0);
     lcd.print("DD that bai");
     lcd.setCursor(0, 1);
     lcd.print("Vui long thu lai");
+    digitalWrite(BUZZER_PIN, HIGH);   
     delay(2000);
+    digitalWrite(BUZZER_PIN, LOW);
   }
-  //    lcd.setCursor(1, 0);
-  //    lcd.print("Dang diem danh");
-  //    lcd.setCursor(0, 1);
-  //    lcd.print("Vui long cho doi");
-  //    delay(2000);
   lcd.clear();
   lcd.setCursor(2, 0);
   lcd.print("DD san sang");
   lcd.setCursor(2, 1);
   lcd.print("Moi quet the");
+}
+
+void Toggle_Buzzer(){
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(200);
+  digitalWrite(BUZZER_PIN, LOW);
+  delay(200);
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(200);
+  digitalWrite(BUZZER_PIN, LOW);
 }
