@@ -1,0 +1,24 @@
+{
+  "name": "room_csvc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "lee",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "body-parser": "^1.18.3",
+    "ejs": "^2.6.1",
+    "express": "^4.16.4",
+    "flash": "^1.1.0",
+    "md5": "^2.2.1",
+    "mysql": "^2.16.0",
+    "net": "^1.0.2",
+    "qs": "^6.7.0",
+    "request": "^2.88.0",
+    "socket.io": "^2.2.0"
+  }
+}
